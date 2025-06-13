@@ -1,0 +1,152 @@
+﻿@model ECommerceMVC.ViewModels.KhachHangVM
+@{
+    ViewData["Title"] = "Chi tiết khách hàng " + Model.HoTen;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg p-4">
+        <div class="row">
+            <!-- Avatar và nút chỉnh sửa -->
+            <div class="col-md-4 text-center">
+                <div class="position-relative">
+                    <img id="customerImage" src="~/Uploads/KhachHang/@Model.Hinh" alt="Ảnh đại diện" class="rounded-circle shadow" width="180" height="180">
+                    <button class="btn btn-outline-primary mt-3" id="btnEdit" data-bs-toggle="modal" data-bs-target="#editModal">
+                        <i class="fas fa-edit"></i> Chỉnh sửa
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thông tin cá nhân -->
+            <div class="col-md-8">
+                <h3 class="mb-3">@Model.HoTen</h3>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Giới tính:</strong> @(Model.GioiTinh ? "Nam" : "Nữ")</li>
+                    <li class="list-group-item"><strong>Ngày sinh:</strong> @Model.NgaySinh?.ToString("dd/MM/yyyy")</li>
+                    <li class="list-group-item"><strong>Địa chỉ:</strong> @Model.DiaChi</li>
+                    <li class="list-group-item"><strong>Điện thoại:</strong> @Model.DienThoai</li>
+                    <li class="list-group-item"><strong>Email:</strong> @Model.Email</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chỉnh Sửa -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh Sửa Thông Tin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="maKh" value="@Model.MaKh" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Họ Tên:</label>
+                        <input type="text" id="editHoTen" class="form-control" value="@Model.HoTen" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Giới Tính:</label>
+                        <select id="editGioiTinh" class="form-select">
+                            <option value="1" selected="@(Model.GioiTinh ? "selected" : null)">Nam</option>
+                            <option value="0" selected="@(Model.GioiTinh ? null : "selected")">Nữ</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ngày Sinh:</label>
+                        <input type="date" id="editNgaySinh" class="form-control" value="@Model.NgaySinh?.ToString("yyyy-MM-dd")">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Địa Chỉ:</label>
+                        <input type="text" id="editDiaChi" class="form-control" value="@Model.DiaChi" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Điện Thoại:</label>
+                        <input type="text" id="editDienThoai" class="form-control" value="@Model.DienThoai" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email:</label>
+                        <input type="email" id="editEmail" class="form-control" value="@Model.Email" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ảnh Đại Diện:</label>
+                        <input type="file" id="editHinh" class="form-control" accept="image/*">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" id="btnSave">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Xử lý AJAX khi nhấn "Lưu"
+        $("#btnSave").click(function () {
+            var formData = new FormData();
+            formData.append("MaKh", $("#maKh").val());
+            formData.append("HoTen", $("#editHoTen").val());
+            if ($("#editGioiTinh").val()) {
+                formData.append("GioiTinh", $("#editGioiTinh").val() === "1");
+            }
+            if ($("#editNgaySinh").val()) {
+                formData.append("NgaySinh", $("#editNgaySinh").val());
+            }
+            formData.append("DiaChi", $("#editDiaChi").val());
+            formData.append("DienThoai", $("#editDienThoai").val());
+            formData.append("Email", $("#editEmail").val());
+
+            var fileInput = $("#editHinh")[0].files[0];
+            if (fileInput) {
+                formData.append("Hinh", fileInput);
+            }
+
+            $.ajax({
+                url: "/KhachHang/Update",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        alert("Cập nhật thành công!");
+
+                        // Cập nhật dữ liệu mới vào giao diện
+                        $("#hoTen").text($("#editHoTen").val());
+                        $("#gioiTinh").text($("#editGioiTinh").val() == "1" ? "Nam" : "Nữ");
+                        $("#ngaySinh").text($("#editNgaySinh").val());
+                        $("#diaChi").text($("#editDiaChi").val());
+                        $("#dienThoai").text($("#editDienThoai").val());
+                        $("#email").text($("#editEmail").val());
+
+                        if (response.imageUrl) {
+                            $("#customerImage").attr("src", response.imageUrl);
+                        }
+
+                        $("#editModal").modal("hide");
+                        location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert("Có lỗi xảy ra!");
+                }
+            });
+        });
+    });
+</script>

@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "Quên mật khẩu";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+            <div class="card shadow-lg p-4 rounded-3">
+                <h2 class="text-center mb-4 text-primary">Quên mật khẩu</h2>
+
+                <!-- Bước 1: Nhập Email -->
+                <div id="step1">
+                    <label class="form-label fw-bold">Nhập Email:</label>
+                    <input id="emailInput" type="email" class="form-control" placeholder="Nhập email của bạn">
+                    <button onclick="sendOTP()" class="btn btn-primary w-100 mt-3">Gửi mã xác nhận</button>
+                </div>
+
+                <!-- Bước 2: Nhập mã OTP -->
+                <div id="step2" class="d-none">
+                    <label class="form-label fw-bold">Nhập mã OTP:</label>
+                    <input id="otpInput" type="text" class="form-control" placeholder="Nhập mã OTP">
+                    <button onclick="verifyOTP()" class="btn btn-success w-100 mt-3">Xác nhận</button>
+                </div>
+
+                <!-- Bước 3: Nhập mật khẩu mới -->
+                <div id="step3" class="d-none">
+                    <label class="form-label fw-bold">Nhập mật khẩu mới:</label>
+                    <input id="newPasswordInput" type="password" class="form-control" placeholder="Nhập mật khẩu mới">
+                    <button onclick="resetPassword()" class="btn btn-danger w-100 mt-3">Đặt lại mật khẩu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function sendOTP() {
+        let email = document.getElementById("emailInput").value.trim().toLowerCase(); // Chuyển email về chữ thường
+        if (!email) {
+            alert("❌ Vui lòng nhập email!");
+            return;
+        }
+
+        console.log("Gửi yêu cầu OTP cho:", email); // Log để kiểm tra email
+
+        fetch("/KhachHang/GuiMaXacNhan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email })  // Đảm bảo JSON đúng format
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    document.getElementById("step1").classList.add("d-none");
+                    document.getElementById("step2").classList.remove("d-none");
+                }
+            })
+            .catch(error => console.error("Lỗi gửi email:", error));
+    }
+
+    function verifyOTP() {
+        let otp = document.getElementById("otpInput").value.trim();
+        if (!otp) {
+            alert("❌ Vui lòng nhập mã OTP!");
+            return;
+        }
+
+        fetch("/KhachHang/XacThucOTP", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ otp: otp })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    document.getElementById("step2").classList.add("d-none");
+                    document.getElementById("step3").classList.remove("d-none");
+                }
+            })
+            .catch(error => console.error("Lỗi xác thực OTP:", error));
+    }
+
+    function resetPassword() {
+        let newPassword = document.getElementById("newPasswordInput").value.trim();
+        if (newPassword.length < 6) {
+            alert("❌ Mật khẩu phải có ít nhất 6 ký tự!");
+            return;
+        }
+
+        fetch("/KhachHang/DatLaiMatKhau", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ newPassword: newPassword })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    window.location.href = "/KhachHang/DangNhap";
+                }
+            })
+            .catch(error => console.error("Lỗi đặt lại mật khẩu:", error));
+    }
+</script>

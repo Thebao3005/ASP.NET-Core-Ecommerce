@@ -1,0 +1,126 @@
+﻿@model IEnumerable<ECommerceMVC.ViewModels.HangHoaVM>
+@{
+    ViewData["Title"] = "Mua Chung";
+    Layout = "_DanhSachHangHoa";
+}
+
+<!-- Copy toàn bộ nội dung view bạn gửi phía trên -->
+<!-- Thay đổi tiêu đề -->
+@section BreadCum {
+    <div class="container-fluid page-header py-5">
+        <h1 class="text-center text-white display-6">Mua Chung</h1>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang Chủ</a></li>
+            <li class="breadcrumb-item active text-white">Mua Chung</li>
+        </ol>
+    </div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+<!-- Thanh trượt giá và nút lọc giữ nguyên -->
+<!-- Danh sách sản phẩm -->
+<div id="productsContainer" class="row">
+    @await Html.PartialAsync("ProductItemMuaChung", Model)
+</div>
+<!-- Modal xem chương trình khuyến mại sản phẩm -->
+<div class="modal fade" id="promoModal" tabindex="-1" aria-labelledby="promoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Bên trái: ảnh sản phẩm -->
+                    <div class="col-md-5 bg-dark rounded-start-4 d-flex align-items-center justify-content-center">
+                        <img id="promoImage" src="" class="img-fluid p-3 rounded-4" alt="Hình sản phẩm" style="max-height: 280px;" />
+                    </div>
+
+                    <!-- Bên phải: nội dung -->
+                    <div class="col-md-7 p-4 bg-white rounded-end-4">
+                        <h4 class="fw-bold text-primary mb-3" id="promoTenHh">Tên sản phẩm</h4>
+
+                        <p>
+                            <strong>Giá gốc:</strong>
+                            <span id="promoGiaGoc" class="text-decoration-line-through text-muted fs-6"></span>
+                        </p>
+                        <p>
+                            <strong>Giá khuyến mãi:</strong>
+                            <span id="promoGiaSauGiam" class="text-danger fw-bold fs-5"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-percent text-warning me-2"></i><strong>Tỷ lệ giảm giá:</strong>
+                            <span id="promoTyLeGG" class="text-dark"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-users text-success me-2"></i><strong>Số người cần để được giảm giá:</strong>
+                            <span id="promoNguoiToiThieu" class="text-dark"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-users text-success me-2"></i><strong>Số người đã tham gia:</strong>
+                            <span id="promoSoNguoiThamGia" class="text-dark"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-clock text-primary me-2"></i><strong>Thời gian bắt đầu:</strong>
+                            <span id="promoStartTime"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-hourglass-end text-danger me-2"></i><strong>Thời gian kết thúc:</strong>
+                            <span id="promoEndTime"></span>
+                        </p>
+
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Phân trang -->
+<div class="col-12">
+    <div class="pagination d-flex justify-content-center mt-5">
+        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage > 1 ? ViewBag.CurrentPage - 1 : 1 })">&laquo;</a>
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <a href="@Url.Action("Index", new { page = i })"
+               class="@(i == ViewBag.CurrentPage ? "active" : "")">@i</a>
+        }
+
+        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage < ViewBag.TotalPages ? ViewBag.CurrentPage + 1 : ViewBag.TotalPages })">&raquo;</a>
+    </div>
+</div>
+
+<script>
+    function updatePriceValue() {
+        var rangeValue = document.getElementById('rangeInput').value;
+        document.getElementById('amount').textContent = rangeValue;
+    }
+
+    document.getElementById('filterBtn').addEventListener('click', function () {
+        var price = document.getElementById('rangeInput').value;
+        updateProductsByPrice(price, 1);
+    });
+
+    function updateProductsByPrice(price, page) {
+        $.ajax({
+            url: '@Url.Action("FilterByPrice", "MuaChung")',
+            type: 'GET',
+            data: { price: price, page: page },
+            success: function (result) {
+                $('#productsContainer').html(result);
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi lọc sản phẩm: ", error);
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,76 @@
+﻿@{
+    ViewData["Title"] = "Đăng ký nhân viên";
+}
+
+<div class="container my-5" style="max-width: 500px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h3>Đăng ký nhân viên mới</h3>
+            <p class="mb-0">Tham gia đội ngũ nhân viên của chúng tôi</p>
+        </div>
+        <div class="card-body p-4">
+
+            <form asp-action="DangKyNV" method="post" novalidate>
+                <div class="mb-3">
+                    <label for="HoTen" class="form-label">Họ và tên</label>
+                    <input type="text" class="form-control" id="HoTen" name="HoTen" required placeholder="Nhập họ và tên">
+                    <div class="invalid-feedback">Vui lòng nhập họ tên đầy đủ.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="Email" name="Email" required placeholder="Nhập email hợp lệ">
+                    <div class="invalid-feedback">Email không hợp lệ.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="MatKhau" class="form-label">Mật khẩu</label>
+                    <input type="password" class="form-control" id="MatKhau" name="MatKhau" required minlength="6" placeholder="Mật khẩu ít nhất 6 ký tự">
+                    <div class="invalid-feedback">Mật khẩu phải có ít nhất 6 ký tự.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="XacNhanMatKhau" class="form-label">Xác nhận mật khẩu</label>
+                    <input type="password" class="form-control" id="XacNhanMatKhau" name="XacNhanMatKhau" required placeholder="Nhập lại mật khẩu">
+                    <div class="invalid-feedback">Mật khẩu xác nhận không khớp.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Đăng ký</button>
+            </form>
+        </div>
+        <div class="card-footer text-center">
+            <small>Đã có tài khoản? <a href="@Url.Action("DangNhap", "KhachHang")">Đăng nhập ngay</a></small>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Bootstrap 5 form validation (client side)
+    (() => {
+        'use strict'
+        const forms = document.querySelectorAll('form')
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity() || !passwordsMatch()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+
+        function passwordsMatch() {
+            const pwd = document.getElementById('MatKhau').value;
+            const confirmPwd = document.getElementById('XacNhanMatKhau').value;
+            if (pwd !== confirmPwd) {
+                document.getElementById('XacNhanMatKhau').setCustomValidity("Mật khẩu xác nhận không khớp");
+                return false;
+            }
+            else {
+                document.getElementById('XacNhanMatKhau').setCustomValidity("");
+                return true;
+            }
+        }
+    })();
+</script>
+

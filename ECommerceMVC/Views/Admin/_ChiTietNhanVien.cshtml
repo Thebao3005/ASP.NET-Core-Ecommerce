@@ -1,0 +1,11 @@
+﻿@model List<ECommerceMVC.Data.NhanVien>
+<div>
+                    @foreach (var nv in Model)
+                {
+    <p><strong>Mã NV:</strong> @nv.MaNv</p>
+    <p><strong>Họ tên:</strong> @nv.HoTen</p>
+    <p><strong>Email:</strong> @nv.Email</p>
+        <p><strong>Hiệu lực:</strong> @(nv.HieuLuc ? "Hoạt động" : "Bị khóa")</p>
+    <p><strong>Trạng thái:</strong> @(nv.KichHoat ? "Đã kích hoạt" : "Chờ duyệt")</p>
+    <!-- Bạn có thể thêm các trường khác nếu cần -->}
+</div>

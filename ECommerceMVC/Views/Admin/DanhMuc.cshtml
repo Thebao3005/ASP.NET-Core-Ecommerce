@@ -1,0 +1,702 @@
+﻿@{
+    ViewData["Title"] = "Quản Lý Danh Mục";
+    string selectedType = ViewBag.SelectedType ?? "Loai";
+    Layout = null;
+    var role = Context.Session.GetString("UserRole");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Danh Mục</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+        /* Sidebar */
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+            /*////////////////////////////////////////////////////////////////*/
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead {
+            background: #007bff;
+            color: white;
+        }
+
+        .table tbody tr:hover {
+            background: #f1f1f1;
+        }
+
+        .img-thumbnail {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+      <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+        <h4>Quản Lý Danh Mục</h4>
+        <div class="user-info">
+            <i class="fas fa-user-circle"></i> Xin Chào, @Context.Session.GetString("UserName")!
+        </div>
+            <a href="/Admin/Index" ><i class="fas fa-home"></i> Trang Chủ</a>
+            @if (role != "NhanVien")
+            {
+                <a href="/Admin/KhachHang"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+                <a href="/Admin/NhanVien"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+            }
+            <a href="/Admin/SanPham"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc" class="active"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+    <div class="content">
+        <h2 class="text-center" style="color: #81c408;">Quản lý danh mục</h2>
+
+        <div class="d-flex justify-content-start align-items-center">
+            <label for="typeSelector" class="me-2 fw-bold">Chọn danh mục:</label>
+            <select id="typeSelector" class="form-select w-25 shadow-sm border-2 rounded">
+                <option value="Loai" selected="@(ViewBag.SelectedType == "Loai" ? "selected" : null)">📦 Loại Hàng</option>
+                <option value="NhaCungCap" selected="@(ViewBag.SelectedType == "NhaCungCap" ? "selected" : null)">🏢 Nhà Cung Cấp</option>
+            </select>
+        </div>
+
+        <div id="loaiHangTable" class="table-container mt-3" style="display: @(ViewBag.SelectedType == "Loai" ? "block" : "none");">
+            <h3>Danh sách Loại hàng</h3>
+            <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalThemLoai">
+                <i class="fas fa-plus-circle"></i> Thêm Loại Hàng
+            </button>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã Loại</th>
+                        <th>Tên Loại</th>
+                        <th>Mô Tả</th>
+                        <th>Hình Ảnh</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.LoaiHangs != null)
+                    {
+                        @foreach (var item in ViewBag.LoaiHangs)
+                        {
+                            <tr>
+                                <td>@item.MaLoai</td>
+                                <td>@item.TenLoai</td>
+                                <td>@item.MoTa</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Hinh))
+                                    {
+                                        <img src="@item.Hinh" class="img-thumbnail" />
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-warning" onclick="editLoai(@item.MaLoai, '@item.TenLoai', '@item.MoTa', '@item.Hinh')">Sửa</button>
+                                    <button class="btn btn-danger" onclick="deleteLoai(@item.MaLoai)">Xóa</button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div id="nhaCungCapTable" class="table-container mt-3" style="display: @(ViewBag.SelectedType == "NhaCungCap" ? "block" : "none");">
+            <h3>Danh sách Nhà cung cấp</h3>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalThemNCC">
+                <i class="fas fa-user-plus"></i> Thêm Nhà Cung Cấp
+            </button>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã NCC</th>
+                        <th>Tên Công Ty</th>
+                        <th>Logo</th>
+                        <th>Người Liên Lạc</th>
+                        <th>Email</th>
+                        <th>Điện Thoại</th>
+                        <th>Địa Chỉ</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.NhaCungCaps != null)
+                    {
+                        @foreach (var item in ViewBag.NhaCungCaps)
+                        {
+                            <tr>
+                                <td>@item.MaNcc</td>
+                                <td>@item.TenCongTy</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Logo))
+                                    {
+                                        <img src="@item.Logo" class="img-thumbnail" />
+                                    }
+                                </td>
+                                <td>@item.NguoiLienLac</td>
+                                <td>@item.Email</td>
+                                <td>@item.DienThoai</td>
+                                <td>@item.DiaChi</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="editNCC('@item.MaNcc', '@item.TenCongTy', '@item.NguoiLienLac', '@item.Email', '@item.DienThoai', '@item.DiaChi', '@item.MoTa', '@item.Logo')">
+                                        Sửa
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteNCC('@item.MaNcc')">
+                                        Xóa
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+<!-- Modal Thêm Loại Hàng -->
+<div class="modal fade" id="modalThemLoai">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm Loại Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemLoai">
+                    <div class="mb-3">
+                        <label>Tên Loại</label>
+                        <input type="text" class="form-control" name="TenLoai" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Mô Tả</label>
+                        <textarea class="form-control" name="MoTa" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Hình</label>
+                        <input type="file" class="form-control" name="Hinh" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chỉnh Sửa Loại Hàng -->
+<div class="modal fade" id="modalSuaLoai">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh Sửa Loại Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaLoai">
+                    <input type="hidden" name="MaLoai" id="editMaLoai" />
+                    <div class="mb-3">
+                        <label>Tên Loại</label>
+                        <input type="text" class="form-control" name="TenLoai" id="editTenLoai" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Mô Tả</label>
+                        <textarea class="form-control" name="MoTa" id="editMoTa" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Hình</label>
+                        <input type="file" class="form-control" name="Hinh" />
+                        <img id="currentHinh" src="" width="50" class="mt-2" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cập Nhật</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Thêm Nhà Cung Cấp -->
+<div class="modal fade" id="modalThemNCC" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm Nhà Cung Cấp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formThemNCC">
+                    <div class="mb-3">
+                        <label class="form-label">Mã NCC</label>
+                        <input type="text" name="MaNcc" id="inputMaNcc" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên Công Ty</label>
+                        <input type="text" name="TenCongTy" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người Liên Lạc</label>
+                        <input type="text" name="NguoiLienLac" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="Email" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Điện Thoại</label>
+                        <input type="text" name="DienThoai" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa Chỉ</label>
+                        <input type="text" name="DiaChi" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô Tả</label>
+                        <textarea name="MoTa" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Logo</label>
+                        <input type="file" name="Logo" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Thêm</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa Nhà Cung Cấp -->
+<div class="modal fade" id="modalSuaNCC" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sửa Nhà Cung Cấp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSuaNCC">
+                    <input type="hidden" name="MaNcc" id="editMaNcc">
+                    <div class="mb-3">
+                        <label class="form-label">Tên Công Ty</label>
+                        <input type="text" name="TenCongTy" id="editTenCongTy" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Người Liên Lạc</label>
+                        <input type="text" name="NguoiLienLac" id="editNguoiLienLac" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="Email" id="editEmail" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Điện Thoại</label>
+                        <input type="text" name="DienThoai" id="editDienThoai" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa Chỉ</label>
+                        <input type="text" name="DiaChi" id="editDiaChi" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô Tả</label>
+                        <textarea name="MoTa" id="editMoTa" class="form-control" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Logo</label>
+                        <input type="file" name="Logo" class="form-control">
+                        <img id="currentLogo" src="" alt="Logo" width="50" height="50">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Cập Nhật</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let savedTab = localStorage.getItem("selectedTab") || "Loai";
+        document.getElementById("typeSelector").value = savedTab;
+        showTable(savedTab);
+
+        document.getElementById("typeSelector").addEventListener("change", function () {
+            let selectedType = this.value;
+            localStorage.setItem("selectedTab", selectedType);
+            showTable(selectedType);
+        });
+    });
+
+    function showTable(type) {
+        document.getElementById("loaiHangTable").style.display = (type === "Loai") ? "block" : "none";
+        document.getElementById("nhaCungCapTable").style.display = (type === "NhaCungCap") ? "block" : "none";
+    }
+    document.getElementById("typeSelector").addEventListener("change", function () {
+        let selectedType = this.value;
+        document.getElementById("loaiHangTable").style.display = (selectedType === "Loai") ? "block" : "none";
+        document.getElementById("nhaCungCapTable").style.display = (selectedType === "NhaCungCap") ? "block" : "none";
+    });
+    $(document).ready(function () {
+        // Sự kiện submit form thêm loại hàng
+        $('#formThemLoai').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/Admin/ThemLoai',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: 'Thêm loại hàng thành công!',
+                            confirmButtonText: 'OK'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi!', res.message || 'Không thể thêm loại hàng.', 'error');
+                    }
+                },
+                error: function (xhr) {
+                   
+                }
+            });
+        });
+
+        // Sự kiện submit form sửa loại hàng
+        $('#formSuaLoai').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/Admin/SuaLoai',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: 'Cập nhật loại hàng thành công!',
+                            confirmButtonText: 'OK'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi!', res.message || 'Không thể cập nhật loại hàng.', 'error');
+                    }
+                },
+                error: function (xhr) {
+                   
+                }
+            });
+        });
+    });
+
+    // Hàm mở modal sửa loại hàng
+    function editLoai(maLoai, tenLoai, moTa, hinh) {
+        $('#editMaLoai').val(maLoai);
+        $('#editTenLoai').val(tenLoai);
+        $('#editMoTa').val(moTa);
+
+        if (hinh && hinh !== "null") {
+            $('#currentHinh').attr('src', hinh).show();
+        } else {
+            $('#currentHinh').hide();
+        }
+
+        $('#modalSuaLoai').modal('show');
+    }
+
+    // Hàm xóa loại hàng
+    function deleteLoai(id) {
+        Swal.fire({
+            title: 'Bạn có chắc chắn muốn xóa?',
+            text: "Hành động này không thể hoàn tác!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Xóa!',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/Admin/XoaLoai', { id: id }, function (res) {
+                    console.log("Phản hồi từ server khi xóa:", res);
+                    if (res.success) {
+                        Swal.fire('Xóa thành công!', '', 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi!', res.message || 'Không thể xóa.', 'error');
+                    }
+                }).fail(function (xhr) {
+                   
+                });
+            }
+        });
+    }
+
+    //ajax nha cung cap
+    $(document).ready(function () {
+        $('#formThemNCC').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '/Admin/ThemNCC',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire('Thành công!', 'Nhà cung cấp đã được thêm!', 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi!', res.error || 'Không thể thêm nhà cung cấp.', 'error');
+                    }
+                },
+                error: function () {
+                    Swal.fire('Lỗi!', 'Có lỗi xảy ra trong quá trình gửi yêu cầu.', 'error');
+                }
+            });
+        });
+
+
+        // Chỉnh sửa Nhà Cung Cấp
+        window.editNCC = function (maNcc, tenCongTy, nguoiLienLac, email, dienThoai, diaChi, moTa, logo) {
+            $('#editMaNcc').val(maNcc);
+            $('#editTenCongTy').val(tenCongTy);
+            $('#editNguoiLienLac').val(nguoiLienLac);
+            $('#editEmail').val(email);
+            $('#editDienThoai').val(dienThoai);
+            $('#editDiaChi').val(diaChi);
+            $('#editMoTa').val(moTa);
+            if (logo && logo !== "null") {
+                $('#currentLogo').attr('src', logo).show();
+            } else {
+                $('#currentLogo').hide();
+            }
+            $('#modalSuaNCC').modal('show');
+        };
+
+        // Gửi request cập nhật nhà cung cấp
+        $('#formSuaNCC').submit(function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            $.ajax({
+                url: '/Admin/SuaNCC',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire('Thành công!', 'Nhà cung cấp đã được cập nhật!', 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi!', 'Không thể cập nhật nhà cung cấp.', 'error');
+                    }
+                }
+            });
+        });
+
+        // Xóa Nhà Cung Cấp
+        window.deleteNCC = function (id) {
+            Swal.fire({
+                title: 'Bạn có chắc chắn muốn xóa?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/XoaNCC', { maNcc: id }, function (res) {
+                        if (res.success) {
+                            Swal.fire('Xóa thành công!', '', 'success').then(() => location.reload());
+                        }
+                    });
+                }
+            });
+        };
+    });
+
+                let timeoutId;  // Biến để lưu ID của setTimeout
+
+            // Hàm để thu gọn sidebar
+            function collapseSidebar() {
+                var sidebar = document.querySelector('.sidebar');
+                sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+            }
+
+            // Hàm để mở rộng sidebar
+            function expandSidebar() {
+                var sidebar = document.querySelector('.sidebar');
+                sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+            }
+            // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+            function resetInactivityTimer() {
+                // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+                timeoutId = setTimeout(collapseSidebar, 1000);
+            }
+            // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.addEventListener('mousemove', function() {
+                expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+                resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+            });
+
+            // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+            document.body.addEventListener('mousemove', function(event) {
+                if (!sidebar.contains(event.target)) {
+                    // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+                    resetInactivityTimer();
+                }
+            });
+            // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+            function toggleSidebar() {
+                var sidebar = document.querySelector('.sidebar');
+                sidebar.classList.toggle('collapsed');
+                clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+            }
+</script>

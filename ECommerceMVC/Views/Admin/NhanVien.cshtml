@@ -1,0 +1,407 @@
+﻿@model List<ECommerceMVC.Data.NhanVien>
+
+@{
+    ViewData["Title"] = "Quản Lý Nhân Viên";
+    Layout = null;
+    var role = Context.Session.GetString("UserRole");
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Khách Hàng</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+         /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+                /*////////////////////////////////////////////////////////////////*/
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+             transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-toggle {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+            <h4 class="text-center">Admin Panel</h4>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i> Xin Chào, @Context.Session.GetString("UserName")!
+            </div>
+            <a href="/Admin/Index" ><i class="fas fa-home"></i> Trang Chủ</a>
+            @if (role != "NhanVien")
+            {
+                <a href="/Admin/KhachHang"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+                <a href="/Admin/NhanVien" class="active"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+            }
+            <a href="/Admin/SanPham"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <h2 class="text-center text-success">Quản Lý Nhân Viên</h2>
+
+        <button class="btn btn-success mb-2" data-bs-toggle="modal" data-bs-target="#modalThem">
+            <i class="fas fa-user-plus"></i> Thêm nhân viên
+        </button>
+@*         <button class="btn btn-warning mb-2" data-bs-toggle="modal" data-bs-target="#modalNhanVienChoDuyet">
+            <i class="fas fa-user-clock"></i> Nhân viên chờ duyệt
+        </button> *@
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Mã NV</th>
+                    <th>Họ Tên</th>
+                    <th>Email</th>
+                    <th>Trạng Thái</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var nv in Model)
+                {
+                    <tr id="row_@nv.MaNv">
+                        <td>@nv.MaNv</td>
+                        <td>@nv.HoTen</td>
+                        <td>@nv.Email</td>
+                        <td>
+                            <span class="status-toggle" data-id="@nv.MaNv" data-status="@(nv.HieuLuc ? "1" : "0")">
+                                <span class="badge @(nv.HieuLuc ? "bg-success" : "bg-danger")">
+                                    @(nv.HieuLuc ? "Hoạt động" : "Bị khóa")
+                                </span>
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="xoaNhanVien('@nv.MaNv')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- Modal Thêm -->
+    <div class="modal fade" id="modalThem" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formThemNhanVien">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Thêm Nhân Viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input name="MaNv" class="form-control mb-2" placeholder="Mã nhân viên" required />
+                        <input name="HoTen" class="form-control mb-2" placeholder="Họ tên" required />
+                        <input name="Email" class="form-control mb-2" placeholder="Email" required />
+                        <input name="MatKhau" type="password" class="form-control" placeholder="Mật khẩu" required />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Thêm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal duyệt nhân viên -->
+    <div class="modal fade" id="modalDuyetNhanVien" tabindex="-1" aria-labelledby="modalDuyetNhanVienLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalDuyetNhanVienLabel">Duyệt tài khoản nhân viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body" id="modalDuyetNhanVienBody">
+                    <!-- Nội dung chi tiết nhân viên sẽ được load AJAX ở đây -->
+                    <p>Đang tải thông tin...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-success" id="btnDuyetNhanVien">Duyệt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentMaNv = null; // Lưu mã nhân viên đang duyệt
+
+        function loadNhanVienChoDuyet(maNv) {
+            currentMaNv = maNv;
+            $('#modalDuyetNhanVienBody').html('<p>Đang tải thông tin...</p>');
+
+            $.ajax({
+                url: '/Admin/ChiTietNhanVien',
+                type: 'GET',
+                data: { id: maNv },
+                success: function (html) {
+                    $('#modalDuyetNhanVienBody').html(html);
+                },
+                error: function () {
+                    $('#modalDuyetNhanVienBody').html('<p class="text-danger">Lỗi tải thông tin nhân viên.</p>');
+                }
+            });
+        }
+
+        $('#btnDuyetNhanVien').click(function () {
+            if (!currentMaNv) {
+                alert('Không có nhân viên để duyệt!');
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/DuyetNhanVien',
+                type: 'POST',
+                data: { id: currentMaNv },
+                success: function (response) {
+                    if (response.success) {
+                        alert('Duyệt tài khoản thành công!');
+                        $('#modalDuyetNhanVien').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Duyệt tài khoản thất bại!');
+                    }
+                },
+                error: function () {
+                    alert('Lỗi server khi duyệt tài khoản.');
+                }
+            });
+        });
+        $(document).ready(function () {
+            $(".status-toggle").click(function () {
+                var element = $(this);
+                var maNv = element.data("id");
+                var currentStatus = parseInt(element.data("status"));
+                var newStatus = currentStatus === 1 ? 0 : 1;
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/CapNhatHieuLucNhanVien",
+                    data: { id: maNv, trangThai: newStatus },
+                    success: function (res) {
+                        if (res.success) {
+                            element.data("status", newStatus);
+                            var badge = element.find(".badge");
+                            badge
+                                .removeClass("bg-success bg-danger")
+                                .addClass(newStatus ? "bg-success" : "bg-danger")
+                                .text(newStatus ? "Hoạt động" : "Bị khóa");
+                        } else {
+                            alert(res.message || "Lỗi cập nhật.");
+                        }
+                    }
+                });
+            });
+        });
+        // Thêm nhân viên
+        $("#formThemNhanVien").submit(function (e) {
+            e.preventDefault();
+            $.post('/Admin/ThemNhanVien', $(this).serialize(), function (res) {
+                if (res.success) {
+                    location.reload(); // hoặc cập nhật bằng JS
+                } else {
+                    alert(res.message);
+                }
+            });
+        });
+
+        // Xóa nhân viên
+        function xoaNhanVien(maNv) {
+            if (confirm("Bạn có chắc muốn xóa nhân viên này?")) {
+                $.post('/Admin/XoaNhanVien', { id: maNv }, function (res) {
+                    if (res.success) {
+                        $("#row_" + maNv).remove();
+                    } else {
+                        alert("Không thể xóa nhân viên!");
+                    }
+                });
+            }
+        }
+         let timeoutId;  // Biến để lưu ID của setTimeout
+
+        // Hàm để thu gọn sidebar
+        function collapseSidebar() {
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+        }
+
+        // Hàm để mở rộng sidebar
+        function expandSidebar() {
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+        }
+        // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+        function resetInactivityTimer() {
+            // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+            timeoutId = setTimeout(collapseSidebar, 1000);
+        }
+        // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.addEventListener('mousemove', function() {
+            expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+            resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+        });
+
+        // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+        document.body.addEventListener('mousemove', function(event) {
+            if (!sidebar.contains(event.target)) {
+                // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+                resetInactivityTimer();
+            }
+        });
+        // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+        function toggleSidebar() {
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+            clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+        }
+    </script>
+</body>
+</html>

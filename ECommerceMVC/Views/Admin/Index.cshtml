@@ -1,0 +1,861 @@
+﻿@using Newtonsoft.Json
+@using ECommerceMVC.ViewModels
+@{
+    ViewData["Title"] = "Trang Quản Trị";
+    Layout = null;
+    var thongKe = ViewBag.ThongKeLoaiHang as List<MenuLoaiVM>;
+    var tt = ViewBag.TinhTrangDonHang as ECommerceMVC.ViewModels.ThongKeDonHangVM;
+    var role = Context.Session.GetString("UserRole");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Quản Trị</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+        /* Sidebar */
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+       .card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    border-radius: 10px;
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.card-text {
+    font-size: 1rem;
+    color: #777;
+}
+
+.text-success {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.text-center {
+    display: block;
+    margin: 0 auto;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+    border-radius: 50%;
+}
+
+@@media (max-width: 768px) {
+    .card-body {
+        padding: 0.8rem;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .text-success {
+        font-size: 1.1rem;
+    }
+}
+
+        .card-body .overflow-auto::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .card-body .overflow-auto::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .card-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-body .text-truncate {
+            max-width: 160px;
+            display: block;
+        }
+
+        canvas {
+            max-width: 80%;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+            <h4 class="text-center">Admin Panel</h4>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i> Xin Chào, @Context.Session.GetString("UserName")!
+            </div>
+            <a href="/Admin/Index" class="active"><i class="fas fa-home"></i> Trang Chủ</a>
+        @if (role != "NhanVien")
+        {
+            <a href="/Admin/KhachHang" ><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+            <a href="/Admin/NhanVien"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+        }
+            <a href="/Admin/SanPham"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+    <div class="content">
+            <h2 class="mb-4">Thống Kê Doanh Thu</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 rounded-4 text-center p-4 bg-light h-100"
+                     style="cursor:pointer"
+                     data-bs-toggle="modal" data-bs-target="#hoaDonModal">
+                    <div class="card-body">
+                        <h5 class="card-title text-uppercase text-muted mb-3">💰 Tổng Doanh Thu</h5>
+                        <p class="display-5 fw-bold text-success">@ViewBag.TongDoanhThu.ToString("N0") VND</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 rounded-4 text-center p-4 bg-light h-100"
+                     style="cursor:pointer"
+                     data-bs-toggle="modal" data-bs-target="#sanPhamModal">
+                    <div class="card-body">
+                        <h5 class="card-title text-uppercase text-muted mb-3">📦 Tổng Sản Phẩm Đã Bán</h5>
+                        <p class="display-5 fw-bold text-primary">@ViewBag.TongSoLuong</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Dáhboard thống kê-->
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="card shadow-sm border-info">
+                    <div class="card-header bg-info text-white fw-bold">💰 Doanh thu hôm nay</div>
+                    <div class="card-body text-center">
+                        <h4 class="text-info">@ViewBag.DoanhThuToday.ToString("N0") VND</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-header bg-primary text-white fw-bold">📅 Doanh thu tuần này</div>
+                    <div class="card-body text-center">
+                        <h4 class="text-primary">@ViewBag.DoanhThuWeek.ToString("N0") VND</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-success">
+                    <div class="card-header bg-success text-white fw-bold">📆 Doanh thu tháng này</div>
+                    <div class="card-body text-center">
+                        <h4 class="text-success">@ViewBag.DoanhThuMonth.ToString("N0") VND</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm border-secondary">
+                    <div class="card-header bg-secondary text-white fw-bold">📦 SP bán hôm nay</div>
+                    <div class="card-body text-center">
+                        <h4 class="text-secondary">@ViewBag.SoSpToday</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-warning">
+                    <div class="card-header bg-warning text-white fw-bold">📦 SP bán tuần này</div>
+                    <div class="card-body text-center">
+                        <h4 class="text-warning">@ViewBag.SoSpWeek</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm border-danger">
+                    <div class="card-header bg-danger text-white fw-bold">📦 SP bán tháng này</div>
+                    <div class="card-body text-center">
+                        <h4 class="text-danger">@ViewBag.SoSpMonth</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sản Phẩm và khách hàng nổi bật-->
+        <div class="row mt-3">
+            <!-- Sản phẩm nổi bật -->
+            <div class="col-md-6">
+                <div class="p-3 border rounded-4 shadow-sm" style="height: 500px; overflow-y: auto;">
+                    <h4 class="text-center mb-4">🌟 Sản phẩm nổi bật</h4>
+                    @foreach (var sp in ViewBag.TopSanPham)
+                    {
+                        <div class="card mb-3 border-0 shadow-sm rounded-3">
+                            <div class="card-body d-flex align-items-center">
+                                <img src="~/Hinh/HangHoa/@sp.Hinh"
+                                     class="rounded me-3"
+                                     alt="@sp.TenHh"
+                                     style="width: 70px; height: 70px; object-fit: cover;">
+                                <div>
+                                    <h6 class="fw-bold mb-1">@sp.TenHh</h6>
+                                    <p class="mb-1 text-danger">@string.Format("{0:N0} VND", sp.DonGia)</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-eye-fill text-primary"></i> @sp.SoLanXem lượt xem
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Khách hàng nổi bật -->
+            <div class="col-md-6">
+                <div class="p-3 border rounded-4 shadow-sm" style="height: 500px; overflow-y: auto;">
+                    <h4 class="text-center mb-4">🏆 Khách hàng tiềm năng</h4>
+                    @foreach (var kh in ViewBag.TopKhachHang)
+                    {
+                        <div class="card mb-3 border-0 shadow-sm rounded-3">
+                            <div class="card-body d-flex align-items-center">
+                                @if (!string.IsNullOrEmpty(kh.AnhDaiDien))
+                                {
+                                    <img src="~/Uploads/KhachHang/@kh.AnhDaiDien"
+                                         class="rounded-circle me-3"
+                                         alt="@kh.TenKh"
+                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <i class="bi bi-person-circle fs-3 text-secondary me-2"></i>
+                                }
+
+                                <div>
+                                    <h6 class="fw-bold mb-1">@kh.TenKh</h6>
+                                    <p class="mb-1 text-muted">@kh.Email</p>
+                                    <small class="text-success">
+                                        @string.Format("{0:N0} VND", kh.TongHoaDon)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- Tình trạng đơn hàng -->
+        <div class="row mt-3">
+        @if (tt != null)
+        {
+            <div class="col-md-6">
+            <div class="card mt-5 shadow-sm rounded-4 border">
+                <div class="card-header bg-info text-white d-flex align-items-center">
+                    <i class="bi bi-clipboard-check me-2 fs-5"></i>
+                    <h5 class="mb-0">Tình trạng đơn hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Tổng đơn hàng</h6>
+                            <p class="fw-bold fs-5 text-primary">
+                                <a href="javascript:void(0);" onclick="hienThiHoaDon('TongHoaDon')" data-bs-toggle="modal" data-bs-target="#hoaDonTModal">
+                                    @tt.TongDonHang
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Đang Xử Lý</h6>
+                            <p class="fw-bold fs-5 text-primary">
+                                <a href="javascript:void(0);" onclick="hienThiHoaDon('HoaDonXL')" data-bs-toggle="modal" data-bs-target="#hoaDonTModal">
+                                    @tt.DonDangXuLy
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Đã giao</h6>
+                            <p class="fw-bold fs-5 text-success">
+                                <a href="javascript:void(0);" onclick="hienThiHoaDon('HoaDonHT')" data-bs-toggle="modal" data-bs-target="#hoaDonTModal">
+                                    @tt.DonDaGiao
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Đã hủy</h6>
+                            <p class="fw-bold fs-5 text-danger">
+                                <a href="javascript:void(0);" onclick="hienThiHoaDon('HoaDonHuy')" data-bs-toggle="modal" data-bs-target="#hoaDonTModal">
+                                    @tt.DonBiHuy
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Tỷ lệ hủy đơn</h6>
+                            <p class="fw-semibold text-danger">@tt.TyLeHuy%</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Thời gian xử lý TB</h6>
+                            <p class="fw-semibold text-dark">
+                                ⏱ <strong>@ViewBag.ThoiGianTrungBinh</strong> / đơn
+                            </p>
+                            <small class="text-secondary">(Từ lúc đặt đến khi hoàn tất giao hàng)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+                <div class="col-md-6">
+                    <div class="card mt-5 shadow-sm rounded-4 border">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">📊 Thống kê đơn hàng</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="donHangChart" height="220"></canvas>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+        }
+        </div>
+        <!--Thống kê Hnagf Hóa-->
+        <div class="row mt-3">
+            @if (thongKe != null && thongKe.Any())
+            {
+                <div class="col-md-12">
+                    <!-- Card Header with styling improvements -->
+                    <div class="card-header bg-dark text-white text-center p-2 shadow-sm rounded-3">
+                        <h4 class="mb-0">📊 Thống kê theo loại hàng</h4>
+                    </div>
+                    <div class="card-body p-3">
+                        @foreach (var loai in thongKe)
+                        {
+                            <div class="mb-3">
+                                <h6 class="mb-1">
+                                    <span class="badge bg-primary">@loai.TenLoai</span>
+                                    <small class="text-muted ms-2">Tổng: @loai.SoLuong sản phẩm</small>
+                                </h6>
+
+                                <div class="d-flex overflow-auto gap-2 p-2 border rounded bg-light shadow-sm">
+                                    @foreach (var sp in loai.SanPhams)
+                                    {
+                                        <div class="card" style="min-width: 160px; max-width: 160px; margin-right: 10px;">
+                                            <img src="~/Hinh/HangHoa/@sp.Hinh"
+                                                 class="card-img-top"
+                                                 style="height: 100px; object-fit: cover;" />
+                                            <div class="card-body p-1 text-center">
+                                                <h6 class="card-title mb-1 text-truncate" style="max-width: 140px;" title="@sp.TenHh">@sp.TenHh</h6>
+                                                <p class="text-danger mb-0">@string.Format("{0:N0} VND", sp.DonGia)</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</body>
+</html>
+<!-- Modal -->
+<div class="modal fade" id="hoaDonModal" tabindex="-1" aria-labelledby="hoaDonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="hoaDonModalLabel">🧾 Danh Sách Hóa Đơn Hoàn Tất</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (ViewBag.HoaDonList != null)
+                {
+                    <div class="row">
+                        @foreach (var hd in ViewBag.HoaDonList)
+                        {
+                            double tongTien = 0;
+                            <div class="col-12 col-md-6 mb-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <strong>Hóa đơn #@hd.MaHd</strong> <span class="text-muted float-end">@hd.NgayDat.ToString("dd/MM/yyyy")</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            @if (!string.IsNullOrEmpty(hd.Hinh))
+                                            {
+                                                <img src="~/Uploads/KhachHang/@hd.Hinh"
+                                                     alt="Ảnh khách hàng"
+                                                     class="rounded-circle me-2"
+                                                     style="width: 40px; height: 40px; object-fit: cover;" />
+                                                <strong>@hd.HoTen</strong>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-person-circle fs-3 text-secondary me-2"></i>
+                                            }
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover align-middle">
+                                                <thead class="table-secondary">
+                                                    <tr>
+                                                        <th>Ảnh</th>
+                                                        <th>Sản phẩm</th>
+                                                        <th>SL</th>
+                                                        <th>Đơn giá</th>
+                                                        <th>Giảm (%)</th>
+                                                        <th>Thành tiền</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var ct in hd.ChiTietHds)
+                                                    {
+                                                        var thanhTien = ct.SoLuong * (ct.DonGia * (1 - ct.GiamGia / 100));
+                                                        tongTien += thanhTien;
+                                                        <tr>
+                                                            <td>
+                                                                <img src="~/Hinh/HangHoa/@ct.Hinh"
+                                                                     alt="@ct.TenHh"
+                                                                     class="img-fluid rounded"
+                                                                     style="width: 50px; height: 50px; object-fit: cover;" />
+                                                            </td>
+                                                            <td>@ct.TenHh</td>
+                                                            <td>@ct.SoLuong</td>
+                                                            <td>@ct.DonGia.ToString("N0")</td>
+                                                            <td>@ct.GiamGia</td>
+                                                            <td class="text-end text-success fw-semibold">@thanhTien.ToString("N0") VND</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="text-end mt-2">
+                                            <strong class="text-danger">Tổng hóa đơn: @tongTien.ToString("N0") VND</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Không có hóa đơn nào để hiển thị.</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="hoaDonTModal" tabindex="-1" aria-labelledby="hoaDonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="hoaDonModalLabel">🧾 Danh Sách Hóa Đơn </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalContentBody">
+               
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Tổng Sản Phẩm Đã Bán -->
+<div class="modal fade" id="sanPhamModal" tabindex="-1" aria-labelledby="sanPhamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="sanPhamModalLabel">📦 Danh sách sản phẩm đã bán</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (ViewBag.SanPhamDaBan != null)
+                {
+                    <div class="row">
+                        @foreach (var sp in ViewBag.SanPhamDaBan)
+                        {
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm h-100 border-0 rounded-4">
+                                    <div class="row g-0">
+                                        <div class="col-4">
+                                            <img src="~/Hinh/HangHoa/@sp.Hinh"
+                                                 alt="@sp.TenHh"
+                                                 class="img-fluid rounded-start-4"
+                                                 style="height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div class="col-8">
+                                            <div class="card-body">
+                                                <h5 class="card-title mb-1">@sp.TenHh</h5>
+                                                <p class="text-muted mb-1">Loại: <strong>@sp.Loai</strong></p>
+                                                <p class="mb-1">Đơn giá: <strong class="text-danger">@string.Format("{0:N0} VND", sp.DonGia)</strong></p>
+                                                <p class="mb-0">Số lượng đã bán: <strong class="text-success">@sp.TongSoLuong</strong></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>Không có dữ liệu sản phẩm đã bán.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script>
+    const dataMap = {
+        TongHoaDon: @Html.Raw(Json.Serialize(ViewBag.TongHoaDon)),
+        HoaDonHT: @Html.Raw(Json.Serialize(ViewBag.HoaDonHT)),
+        HoaDonHuy: @Html.Raw(Json.Serialize(ViewBag.HoaDonHuy)),
+        HoaDonXL: @Html.Raw(Json.Serialize(ViewBag.HoaDonXL)),
+            };
+
+    function hienThiHoaDon(loai) {
+        const ds = dataMap[loai];
+        const modalBody = document.getElementById("modalContentBody");
+        const modalTitle = document.getElementById("hoaDonModalLabel");
+
+        const tenLoai = {
+            TongHoaDon: "🧾 Tất cả hóa đơn",
+            HoaDonHT: "🧾 Hóa đơn đã giao",
+            HoaDonHuy: "🧾 Hóa đơn đã hủy"
+        };
+
+        modalTitle.innerText = tenLoai[loai] || "🧾 Hóa đơn";
+
+        if (!ds || ds.length === 0) {
+            modalBody.innerHTML = "<p class='text-muted'>Không có hóa đơn nào để hiển thị.</p>";
+            return;
+        }
+
+        let html = '<div class="row">';
+        ds.forEach(hd => {
+            let tong = 0;
+            let chiTiet = "";
+            hd.chiTietHds.forEach(ct => {
+                let thanhTien = ct.soLuong * (ct.donGia * (1 - ct.giamGia / 100));
+                tong += thanhTien;
+
+                chiTiet += `
+                            <tr>
+                                <td><img src="/Hinh/HangHoa/${ct.hinh}" style="width:50px;height:50px;object-fit:cover;" /></td>
+                                <td>${ct.tenHh}</td>
+                                <td>${ct.soLuong}</td>
+                                <td>${ct.donGia.toLocaleString()}</td>
+                                <td>${ct.giamGia}%</td>
+                                <td class="text-end text-success">${thanhTien.toLocaleString()} VND</td>
+                            </tr>`;
+            });
+
+            html += `
+                        <div class="col-12 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-light">
+                                    <strong>Hóa đơn #${hd.maHd}</strong>
+                                         <span class="badge bg-primary">${hd.tenTrangThai}</span>
+                                    <span class="float-end">${new Date(hd.ngayDat).toLocaleDateString()}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        ${hd.hinh ? `<img src="/Uploads/KhachHang/${hd.hinh}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;"> <strong>${hd.hoTen}</strong>` :
+                    `<i class="bi bi-person-circle fs-3 text-secondary me-2"></i>`}
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover align-middle">
+                                            <thead class="table-secondary">
+                                                <tr><th>Ảnh</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Giảm (%)</th><th>Thành tiền</th></tr>
+                                            </thead>
+                                            <tbody>${chiTiet}</tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-end mt-2">
+                                        <strong class="text-danger">Tổng hóa đơn: ${tong.toLocaleString()} VND</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+        });
+
+        html += "</div>";
+        modalBody.innerHTML = html;
+    }
+    const ctx = document.getElementById('donHangChart').getContext('2d');
+    const donHangChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Tổng đơn', 'Đang xử lý', 'Đã giao', 'Đã hủy'],
+            datasets: [{
+                label: 'Số lượng',
+                data: [
+    @tt.TongDonHang,
+    @tt.DonDangXuLy,
+    @tt.DonDaGiao,
+    @tt.DonBiHuy
+                    ],
+                backgroundColor: [
+                    'rgba(0, 123, 255, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(220, 53, 69, 0.7)'
+                ],
+                borderRadius: 10,
+                borderSkipped: false,
+                barThickness: 40
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return ` ${context.parsed.y} đơn`;
+                        }
+                    }
+                },
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (val) => val,
+                    font: { weight: 'bold' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: 'Số lượng đơn'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Trạng thái đơn hàng'
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+          let timeoutId;  // Biến để lưu ID của setTimeout
+
+    // Hàm để thu gọn sidebar
+    function collapseSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+    }
+
+    // Hàm để mở rộng sidebar
+    function expandSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+    }
+
+    // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+    function resetInactivityTimer() {
+        // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+        timeoutId = setTimeout(collapseSidebar, 1000);
+    }
+
+    // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+    var sidebar = document.querySelector('.sidebar');
+    sidebar.addEventListener('mousemove', function() {
+        expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+        resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+    });
+
+    // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+    document.body.addEventListener('mousemove', function(event) {
+        if (!sidebar.contains(event.target)) {
+            // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+            resetInactivityTimer();
+        }
+    });
+
+    // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+    function toggleSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('collapsed');
+        clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+    }
+    ////////////////////////////////////////////
+ 
+    </script>

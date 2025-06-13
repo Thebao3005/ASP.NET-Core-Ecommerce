@@ -1,0 +1,51 @@
+﻿@model ECommerceMVC.ViewModels.LoginVM
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+            <div class="card shadow-lg p-4 rounded-3">
+                <h2 class="text-center mb-4 text-primary">Đăng nhập</h2>
+
+                @if (!ViewData.ModelState.IsValid)
+
+                {
+                    <div class="alert alert-danger">
+                        @Html.ValidationSummary()
+                    </div>
+                }
+                <form asp-action="DangNhap">
+                    <div class="mb-3">
+                        <label asp-for="@Model.Email" class="form-label fw-bold">Email<sup class="text-danger">*</sup></label>
+                        <input asp-for="@Model.Email" type="email" class="form-control" placeholder="Nhập email">
+                        <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="@Model.MatKhau" class="form-label fw-bold">Mật khẩu<sup class="text-danger">*</sup></label>
+                        <input asp-for="@Model.MatKhau" type="password" class="form-control" placeholder="Nhập mật khẩu">
+                        <span asp-validation-for="@Model.MatKhau" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input asp-for="@Model.RememberMe" class="form-check-input">
+                        <label class="form-check-label">Ghi nhớ đăng nhập</label>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary w-100 py-2">Đăng nhập</button>
+                    </div>
+                </form>
+
+                <!-- Link Quên Mật Khẩu -->
+                <div class="text-center mt-3">
+                    <a asp-action="QuenMatKhau" class="text-decoration-none text-danger fw-bold">Quên mật khẩu?</a>
+                </div>
+
+                <!-- Link Đăng Ký -->
+                <div class="text-center mt-3">
+                    <a asp-action="DangKy" class="text-decoration-none">Chưa có tài khoản? Đăng ký ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

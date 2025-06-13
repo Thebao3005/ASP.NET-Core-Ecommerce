@@ -1,0 +1,230 @@
+﻿@{
+    ViewData["Title"] = "Trang chủ - Mua hàng chung";
+
+    var sanPhams = ViewBag.FeaturedProducts as List<ECommerceMVC.Data.HangHoa>;
+
+    var danhGias = ViewBag.DanhGiaNguoiDung as List<ECommerceMVC.Data.YeuThich>;
+
+}
+
+<!-- Banner chính -->
+<div class="jumbotron text-white banner-custom text-center d-flex flex-column justify-content-center align-items-center">
+    <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">Chào mừng đến với Shop Mua Chung!</h1>
+    <p class="lead animate__animated animate__fadeInUp"><i class="fas fa-tags me-2"></i>Mua chung – Tiết kiệm hơn, mua sắm thông minh!</p>
+    <a href="@Url.Action("Index", "HangHoa")" class="btn btn-lg btn-light mt-3 fw-bold shadow-sm animate__animated animate__bounceIn">Khám phá ngay</a>
+</div>
+
+<style>
+    /* Banner với màu gradient Xanh Lá - Cam */
+    .banner-custom {
+        background: linear-gradient(135deg, rgba(46, 204, 113, 0.85), rgba(243, 156, 18, 0.85)), url('/images/banner-bg.jpg') no-repeat center center;
+        background-size: cover;
+        padding: 100px 20px;
+        box-shadow: inset 0 0 0 2000px rgba(0,0,0,0.1);
+    }
+
+    /* Hiệu ứng chữ */
+    .banner-custom h1 {
+        text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 1.5s ease-in-out;
+    }
+
+    .banner-custom p {
+        font-size: 1.3rem;
+        font-weight: 500;
+        animation: slideIn 1.5s ease-in-out;
+    }
+
+    /* Hiệu ứng fade in */
+    @@keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(-20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hiệu ứng slide in */
+    @@keyframes slideIn {
+        0% { opacity: 0; transform: translateX(-20px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Button đẹp hơn */
+    .banner-custom .btn {
+        padding: 12px 24px;
+        font-size: 1.2rem;
+        border-radius: 50px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .banner-custom .btn:hover {
+        background-color: #81C408;
+        color: white;
+        transform: scale(1.05);
+    }
+    /* Nhãn "Nổi bật" nhỏ hơn và nhấp nháy */
+    .badge-featured {
+        top: 8px;
+        left: 8px;
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 10px;
+        background: linear-gradient(45deg, #ff7e5f, #feb47b);
+        box-shadow: 0px 0px 5px rgba(255, 126, 95, 0.7);
+        animation: blink 1s infinite alternate;
+    }
+
+    /* Hiệu ứng nhấp nháy */
+    @@keyframes blink {
+        0% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        100% {
+            opacity: 0.5;
+            transform: scale(1.1);
+        }
+    }
+
+    .hover-zoom:hover img {
+        transform: scale(1.05);
+        transition: 0.3s;
+    }
+</style>
+
+
+<!-- Tiêu đề danh mục sản phẩm nổi bật -->
+<div class="container mt-5">
+<h2 class="fw-bold text-center text-primary mb-4">Sản phẩm Nổi Bật</h2>
+
+<div class="vesitable">
+    <div class="container">
+        <div class="owl-carousel vegetable-carousel justify-content-center">
+            @foreach (var item in sanPhams)
+            {
+                <div class="card border-0 shadow-sm text-center rounded product-item position-relative">
+                    <!-- Hình ảnh sản phẩm -->
+                    <div class="product-img p-3 position-relative">
+                        <img src="@Url.Content("~/Hinh/HangHoa/" + item.Hinh)"
+                             class="img-fluid rounded"
+                             alt="@item.TenHh"
+                             style="max-height: 180px; width: auto; object-fit: contain;">
+
+                        <!-- Nhãn "Nổi bật" nhỏ hơn và nhấp nháy -->
+                        <div class="badge-featured text-white fw-bold position-absolute">
+                            Nổi bật
+                        </div>
+                    </div>
+
+                    <!-- Nội dung sản phẩm -->
+                    <div class="card-body">
+                        <h6 class="fw-bold text-dark">@item.TenHh</h6>
+                        <p class="text-danger fw-bold fs-5 mb-3">@item.DonGia.GetValueOrDefault().ToString("#,##0") VND</p>
+                        <a href="@Url.Action("Detail", "HangHoa", new { id = item.MaHh })"
+                           class="btn btn-outline-primary px-4 py-1 rounded-pill">Xem</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+</div>
+<!-- Phản hồi khách hàng -->
+<div class="container mt-5">
+    <h2 class="text-center mb-4 fw-bold text-primary">Khách hàng nói gì?</h2>
+
+    @if (danhGias != null && danhGias.Any())
+
+    {
+        <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+
+                @for (int i = 0; i < danhGias.Count; i++)
+
+                {
+
+                    var dg = danhGias[i];
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        <div class="card border-0 shadow-lg p-4 text-center mx-auto" style="max-width: 500px;">
+                            <img src="@Url.Content("~/Uploads/KhachHang/" + (dg.MaKhNavigation?.Hinh ?? "default.jpg"))"
+                                 class="rounded-circle mx-auto mb-3"
+                                 style="width: 80px; height: 80px; object-fit: cover;"
+                                 alt="@(dg.MaKhNavigation?.HoTen ?? "Ẩn danh")" />
+
+                            <div class="mb-2">
+                                @for (int star = 1; star <= 5; star++)
+
+                                {
+                                    if (star <= dg.SoSao)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-muted"></i>
+                                    }
+
+                                }
+                            </div>
+
+                            <p class="fst-italic text-secondary">“@dg.Comment”</p>
+                            <h6 class="fw-bold text-dark mb-0">@dg.MaKhNavigation?.HoTen</h6>
+                            <small class="text-muted">@dg.NgayChon.ToString()</small>
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+            <!-- Controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon bg-dark rounded-circle" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon bg-dark rounded-circle" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    }
+
+    else
+
+    {
+        <p class="text-center text-muted">Chưa có đánh giá nào.</p>
+    }
+</div>
+
+
+<!-- Lợi ích mua hàng chung -->
+<div class="container mt-5">
+    <h2 class="text-center mb-4 fw-bold text-primary">Lợi ích khi mua hàng chung</h2>
+    <div class="row text-center">
+        <div class="col-md-4">
+            <i class="fas fa-users fa-3x text-primary"></i>
+            <h4 class="mt-3">Giá ưu đãi</h4>
+            <p>Càng nhiều người mua, giá càng rẻ!</p>
+        </div>
+        <div class="col-md-4">
+            <i class="fas fa-shipping-fast fa-3x text-primary"></i>
+            <h4 class="mt-3">Giao hàng nhanh</h4>
+            <p>Hỗ trợ giao hàng nhanh trên toàn quốc.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="fas fa-hand-holding-usd fa-3x text-primary"></i>
+            <h4 class="mt-3">Hoàn tiền dễ dàng</h4>
+            <p>Chính sách hoàn tiền minh bạch, rõ ràng.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Gọi hành động -->
+<div class="container mt-5 text-center">
+    <h2 class="mb-3">Tham gia ngay cùng chúng tôi!</h2>
+    <p>Đăng ký tài khoản để nhận nhiều ưu đãi khi mua sắm.</p>
+    <a href="@Url.Action("DangKy", "KhachHang")" class="btn btn-lg btn-success">Đăng ký ngay</a>
+@*     <div>
+        <a href="@Url.Action("DangKy", "NhanVien")" class="btn btn-outline-primary btn-lg">
+            Đăng ký trở thành nhân viên
+        </a>
+    </div> *@
+</div>

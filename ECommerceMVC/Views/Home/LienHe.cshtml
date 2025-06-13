@@ -1,0 +1,112 @@
+﻿@{
+    ViewData["Title"] = "Liên Hệ - Mua hàng chung";
+}
+
+<!-- Contact Start -->
+<div class="container-fluid contact py-5">
+    <div class="container py-5">
+        <div class="p-5 bg-white shadow-lg rounded">
+            <div class="row g-4">
+                <!-- Tiêu đề liên hệ -->
+                <div class="col-12">
+                    <div class="text-center mx-auto" style="max-width: 700px;">
+                        <h1 class="text-primary fw-bold display-4">Liên hệ</h1>
+                        <p class="mb-4 fs-5">Nếu bạn có bất kỳ thắc mắc nào, hãy gửi thông tin cho chúng tôi. Chúng tôi sẽ liên hệ lại sớm nhất có thể!</p>
+                    </div>
+                </div>
+
+                <!-- Thông tin liên hệ -->
+                <div class="col-lg-5">
+                    <div class="d-flex align-items-center p-4 bg-light rounded shadow-sm mb-3">
+                        <i class="fas fa-map-marker-alt fa-2x text-primary me-3"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1 fs-4">Địa chỉ</h5>
+                            <p class="mb-0">Hai Bà Trưng, Hà Nội, Việt Nam</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center p-4 bg-light rounded shadow-sm mb-3">
+                        <i class="fas fa-envelope fa-2x text-primary me-3"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1 fs-4">Email</h5>
+                            <p class="mb-0">thebao2k3@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center p-4 bg-light rounded shadow-sm">
+                        <i class="fa fa-phone-alt fa-2x text-primary me-3"></i>
+                        <div>
+                            <h5 class="fw-bold mb-1 fs-4">Điện thoại</h5>
+                            <p class="mb-0">0349034016</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form liên hệ -->
+                <div class="col-lg-7">
+                    <form asp-controller="Home" asp-action="Submit" method="post">
+                        <select name="MaCd" class="w-100 form-control border-0 py-3 mb-4" required>
+                            <option value="">-- Chọn chủ đề --</option>
+                            @if (ViewBag.ChuDeList != null)
+                            {
+                                @foreach (var item in ViewBag.ChuDeList)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
+
+                        <input type="text" name="HoTen" class="w-100 form-control border-0 py-3 mb-4" placeholder="Họ Tên" required>
+                        <input type="email" name="Email" class="w-100 form-control border-0 py-3 mb-4" placeholder="Nhập Email của bạn" required>
+                        <input type="text" name="DienThoai" class="w-100 form-control border-0 py-3 mb-4" placeholder="Số điện thoại">
+                        <textarea name="NoiDung" class="w-100 form-control border-0 mb-4" rows="5" placeholder="Nội dung..." required></textarea>
+
+                        <button class="w-100 btn btn-primary py-3" type="submit">Gửi</button>
+                    </form>
+                </div>
+
+                <!-- Bản đồ nhỏ hơn đặt dưới -->
+                <div class="col-lg-12">
+                    <div class="h-100 rounded overflow-hidden">
+                        <iframe class="rounded w-100"
+                                style="height: 300px; border: 0;"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.6876972530645!2d105.84117147502693!3d21.0055421806407!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135abd8e20f8c55%3A0x3e3a4a0a39a624eb!2zSGFpIEJhIFRyw7luZywgSGFub2ksIFZpZXRuYW0!5e0!3m2!1sen!2s!4v1710815279102"
+                                allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Contact End -->
+<!-- Contact End -->
+<!-- Thêm thư viện SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var successMessage = '@TempData["SuccessMessage"]';
+        var isSubmitted = sessionStorage.getItem("formSubmitted");
+
+        // Chỉ hiển thị nếu có thông báo và form đã được submit
+        if (successMessage && isSubmitted === "true") {
+            Swal.fire({
+                title: "Thành công!",
+                text: decodeHTMLEntities(successMessage),
+                icon: "success",
+                confirmButtonText: "OK",
+                timer: 3000
+            });
+
+            // Xóa trạng thái sau khi hiển thị để tránh thông báo lại khi load trang
+            sessionStorage.removeItem("formSubmitted");
+        }
+    });
+
+    // Ghi nhận khi form được submit
+    document.querySelector("form").addEventListener("submit", function () {
+        sessionStorage.setItem("formSubmitted", "true");
+    });
+
+    function decodeHTMLEntities(text) {
+        var doc = new DOMParser().parseFromString(text, "text/html");
+        return doc.documentElement.textContent;
+    }
+</script>

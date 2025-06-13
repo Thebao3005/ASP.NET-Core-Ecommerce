@@ -1,0 +1,123 @@
+﻿@model IEnumerable<ECommerceMVC.ViewModels.HangHoaVM>
+
+@{
+	ViewData["Title"] = "Index";
+	Layout = "_DanhSachHangHoa";
+}
+<style>
+#productsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Khoảng cách giữa các sản phẩm */
+}
+
+#productsContainer .col-md-4 { 
+    flex: 1 1 calc(33.33% - 20px); /* Mỗi sản phẩm chiếm 1/3 chiều rộng của container */
+    box-sizing: border-box;
+}
+
+@@media (max-width: 768px) {
+    #productsContainer .col-md-4 {
+        flex: 1 1 calc(50% - 20px); /* Trên màn hình nhỏ, mỗi sản phẩm chiếm 1/2 chiều rộng */
+    }
+}
+
+@@media (max-width: 576px) {
+    #productsContainer .col-md-4 {
+        flex: 1 1 100%; /* Trên màn hình rất nhỏ, mỗi sản phẩm chiếm toàn bộ chiều rộng */
+    }
+}
+
+/* Đảm bảo khi chỉ có một sản phẩm, nó vẫn giữ kích thước */
+#productsContainer .col-md-4 {
+    flex-grow: 0; /* Không phóng to khi ít sản phẩm */
+    flex-shrink: 0; /* Không co lại khi ít sản phẩm */
+}
+
+/* Các thiết lập cho pagination */
+.pagination a {
+    color: #333;
+    padding: 8px 16px;
+    text-decoration: none;
+    margin: 0 4px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.pagination a.active {
+    background-color: #ffb500;
+    color: white;
+    border-color: #ffb500;
+}
+
+
+</style>
+<!-- Single Page Header start -->
+@section BreadCum {
+	<div class="container-fluid page-header py-5">
+		<h1 class="text-center text-white display-6">Shop</h1>
+		<ol class="breadcrumb justify-content-center mb-0">
+			<li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="nav-item nav-link active">Trang Chủ</a></li>
+			<li class="breadcrumb-item active text-white">Shop</li>
+		</ol>
+	</div>
+}
+<!-- Single Page Header End -->
+<!-- Thanh trượt để chọn giá -->
+<div class="col-lg-12">
+    <div class="mb-3">
+        <h4 class="mb-2">Giá</h4>
+        <input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="100000000" value="0" oninput="updatePriceValue()">
+        <output id="amount" name="amount" for="rangeInput">0</output>
+    </div>
+</div>
+
+<!-- Nút Lọc -->
+<div class="col-lg-12">
+    <button class="btn btn-primary" id="filterBtn">Lọc</button>
+</div>
+
+<!-- Hiển thị sản phẩm -->
+<div id="productsContainer" class="row">
+    @await Html.PartialAsync("ProductItem", Model)
+</div>
+
+<div class="col-12">
+    <div class="pagination d-flex justify-content-center mt-5">
+        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage > 1 ? ViewBag.CurrentPage - 1 : 1, loai = ViewBag.SelectedCategory })" class="rounded">&laquo;</a>
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <a href="@Url.Action("Index", new { page = i, loai = ViewBag.SelectedCategory })"
+               class="rounded @(i == ViewBag.CurrentPage ? "active" : "")">@i</a>
+        }
+
+        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage < ViewBag.TotalPages ? ViewBag.CurrentPage + 1 : ViewBag.TotalPages, loai = ViewBag.SelectedCategory })" class="rounded">&raquo;</a>
+    </div>
+</div>
+
+<script>
+    function updatePriceValue() {
+        var rangeValue = document.getElementById('rangeInput').value;
+        document.getElementById('amount').textContent = rangeValue;
+    }
+
+    document.getElementById('filterBtn').addEventListener('click', function () {
+        var price = document.getElementById('rangeInput').value;
+        updateProductsByPrice(price, 1); // luôn lọc lại từ trang 1
+    });
+
+    function updateProductsByPrice(price, page) {
+        $.ajax({
+            url: '@Url.Action("FilterByPrice", "HangHoa")',
+            type: 'GET',
+            data: { price: price, page: page },
+            success: function (result) {
+                $('#productsContainer').html(result);
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi khi lọc sản phẩm: ", error);
+            }
+        });
+    }
+</script>

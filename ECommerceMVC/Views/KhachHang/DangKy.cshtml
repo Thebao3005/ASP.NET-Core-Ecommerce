@@ -1,0 +1,98 @@
+﻿@model ECommerceMVC.ViewModels.RegisterVM
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-12">
+            <div class="card shadow-lg p-4 rounded-3">
+                <h2 class="text-center mb-4 text-primary">Đăng ký Thành viên</h2>
+
+                @if (TempData["Success"] != null)
+
+                {
+                    <div class="alert alert-success text-center">
+                        @TempData["Success"]
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid)
+
+                {
+                    <div class="alert alert-danger">
+                        @Html.ValidationSummary()
+                    </div>
+                }
+
+                <form asp-controller="KhachHang" asp-action="DangKy" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label asp-for="HoTen" class="form-label fw-bold">Họ và tên<sup class="text-danger">*</sup></label>
+                        <input asp-for="HoTen" class="form-control">
+                        <span asp-validation-for="HoTen" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Giới tính</label>
+                        <div class="form-check">
+                            <input asp-for="GioiTinh" class="form-check-input" type="checkbox" id="gioiTinhCheckbox">
+                            <label for="gioiTinhCheckbox" class="form-check-label">Nam</label>
+                        </div>
+                        <input type="hidden" name="GioiTinh" id="gioiTinhHidden" value="false">
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NgaySinh" class="form-label fw-bold">Ngày sinh</label>
+                        <input asp-for="NgaySinh" type="date" class="form-control">
+                        <span asp-validation-for="NgaySinh" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DiaChi" class="form-label fw-bold">Địa chỉ</label>
+                        <input asp-for="DiaChi" class="form-control">
+                        <span asp-validation-for="DiaChi" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DienThoai" class="form-label fw-bold">Số điện thoại<sup class="text-danger">*</sup></label>
+                        <input asp-for="DienThoai" type="tel" class="form-control">
+                        <span asp-validation-for="DienThoai" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MatKhau" class="form-label fw-bold">Mật khẩu<sup class="text-danger">*</sup></label>
+                        <input asp-for="MatKhau" type="password" class="form-control">
+                        <span asp-validation-for="MatKhau" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-bold">Email<sup class="text-danger">*</sup></label>
+                        <input asp-for="Email" type="email" class="form-control">
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                      <div class="mb-3">
+                          <label class="form-label fw-bold">Ảnh đại diện</label>
+                          <input type="file" name="Hinh" class="form-control">
+                      </div>
+ 
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary w-100 py-2">Đăng ký</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <small>Bạn đã có tài khoản? <a asp-controller="KhachHang" asp-action="DangNhap">Đăng nhập</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById("gioiTinhCheckbox").addEventListener("change", function () {
+            document.getElementById("gioiTinhHidden").value = this.checked ? "true" : "false";
+        });
+    </script>
+}

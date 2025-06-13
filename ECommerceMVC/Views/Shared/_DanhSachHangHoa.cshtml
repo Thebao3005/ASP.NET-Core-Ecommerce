@@ -1,0 +1,93 @@
+﻿@{
+	Layout = "_LayoutCustomer";
+}
+
+<!-- Single Page Header start -->
+@RenderSection("BreadCum", required: false)
+<!-- Single Page Header End -->
+<!-- Fruits Shop Start-->
+<div class="container-fluid fruite py-5">
+	<div class="container py-5">
+		<div class="row g-4">
+			<div class="col-lg-12">
+				<div class="row g-4">
+					<div class="col-xl-3">
+
+						@await Html.PartialAsync("_TimKiemPanel")
+
+					</div>
+					<div class="col-6"></div>
+@* 					<div class="col-xl-3">
+						<div class="bg-light ps-3 py-3 rounded d-flex justify-content-between mb-4">
+							<label for="fruits">Sắp xếp mặc định:</label>
+							<select id="fruits" name="fruitlist" class="border-0 form-select-sm bg-light me-3" form="fruitform">
+								<option value="saab">Phổ biến</option>
+								<option value="opel">Thực phẩm hữu cơ</option>
+								<option value="audi">Nhiều chất dinh dưỡng</option>
+							</select>
+						</div>
+					</div> *@
+				</div>
+				<div class="row g-4">
+					<div class="col-lg-3">
+						<div class="row g-4">
+							@await Component.InvokeAsync("MenuLoai")
+
+			@* 				<div class="col-lg-12">
+								<div class="mb-3">
+									<h4 class="mb-2">Giá</h4>
+									<input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500" value="0" oninput="amount.value=rangeInput.value">
+									<output id="amount" name="amount" min-velue="0" max-value="500" for="rangeInput">0</output>
+								</div>
+							</div> *@
+@* 							<div class="col-lg-12">
+								<div class="mb-3">
+									<h4>Thêm vào</h4>
+									<div class="mb-2">
+										<input type="radio" class="me-2" id="Categories-1" name="Categories-1" value="Beverages">
+										<label for="Categories-1"> Thực phẩm hữu cơ</label>
+									</div>
+									<div class="mb-2">
+										<input type="radio" class="me-2" id="Categories-2" name="Categories-1" value="Beverages">
+										<label for="Categories-2"> Thực phẩm tươi</label>
+									</div>
+									<div class="mb-2">
+										<input type="radio" class="me-2" id="Categories-3" name="Categories-1" value="Beverages">
+										<label for="Categories-3"> Người bán hàng</label>
+									</div>
+									<div class="mb-2">
+										<input type="radio" class="me-2" id="Categories-4" name="Categories-1" value="Beverages">
+										<label for="Categories-4"> Giảm giá</label>
+									</div>
+									<div class="mb-2">
+										<input type="radio" class="me-2" id="Categories-5" name="Categories-1" value="Beverages">
+										<label for="Categories-5"> Thực phẩm hết hạn</label>
+									</div>
+								</div>
+							</div> *@
+							@if (ViewBag.HideSieuSale != true)
+
+							{
+								@await Component.InvokeAsync("ViewSieuSale")
+							}
+							<div class="col-lg-12">
+								<div class="position-relative">
+									<img src="~/img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
+									<div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
+										<h3 class="text-secondary fw-bold">Trái cây <br> Tươi <br>Sạch</h3>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-9">
+						<div class="row g-4 justify-content-center">
+							@RenderBody()
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Fruits Shop End-->

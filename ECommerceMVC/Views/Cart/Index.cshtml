@@ -1,0 +1,184 @@
+﻿@model IEnumerable<ECommerceMVC.ViewModels.CartItem>
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+    var cart = Model; // Giỏ hàng được truyền từ controller
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success">
+        <strong>Đặt hàng thành công!</strong> @successMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Thông báo lỗi!</strong> @errorMessage
+    </div>
+}
+
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Giỏ Hàng</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item"><a href="#">Pages</a></li>
+        <li class="breadcrumb-item active text-white">Giỏ Hàng</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+<!-- Cart Page Start -->
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Sản phẩm</th>
+                        <th scope="col">Tên sản phẩm</th>
+                        <th scope="col">Giá tiền</th>
+                        <th scope="col">Số Lượng</th>
+                        <th scope="col">Tổng Tiền</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="@Url.Content("~/Hinh/HangHoa/" + item.Hinh)" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="@item.TenHH">
+                                </div>
+                            </td>
+                            <td>
+                                <p class="mb-0 mt-4">
+                                    <a asp-action="Detail" asp-controller="HangHoa" asp-route-id="@item.MaHh">
+                                        @item.TenHH
+                                    </a>
+                                </p>
+                            </td>
+                            <td>
+                                <p class="mb-0 mt-4">@item.DonGia.ToString("N0") VND</p>
+                            </td>
+                            <td>
+                                <div class="input-group quantity mt-4" style="width: 120px;">
+                                    <input type="number" class="form-control form-control-sm text-center border-0 update-quantity"
+                                           data-id="@item.MaHh" value="@item.SoLuong" min="1">
+                                </div>
+                            </td>
+                            <td>
+                                <p class="mb-0 mt-4 total-price">@item.ThanhTien.ToString("N0") VND</p>
+                            </td>
+                            <td>
+                                <a asp-action="RemoveCart" asp-controller="Cart" asp-route-id="@item.MaHh" class="btn btn-md rounded-circle bg-light border mt-4">
+                                    <i class="fa fa-times text-danger"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row g-4 justify-content-end">
+            <div class="col-8"></div>
+            <div class="col-sm-8 col-md-7 col-lg-6 col-xl-4">
+                <div class="bg-light rounded">
+                    <div class="p-4">
+                        @if (cart.Any())  // Kiểm tra xem giỏ hàng có sản phẩm hay không
+                        {
+                            <h1 class="display-6 mb-4">Thành <span class="fw-normal">Tiền</span></h1>
+                            <div class="d-flex justify-content-between mb-4">
+                                <h5 class="mb-0 me-4">Tổng tiền sản phẩm:</h5>
+                                <p class="mb-0" id="total-cart">@Model.Sum(p => p.ThanhTien).ToString("N0") VND</p>
+                            </div>
+                            <h3>Giỏ hàng của bạn:</h3>
+                            <ul id="cart-items">
+                                @foreach (var item in cart)
+                                {
+                                    <li data-id="@item.MaHh">
+                                        @item.TenHH - Số lượng: <span class="item-quantity">@item.SoLuong</span>
+                                    </li>
+                                }
+                            </ul>
+
+                            <!-- Phương thức thanh toán -->
+                            <h5 class="mt-4">Chọn phương thức thanh toán:</h5>
+                            <form asp-action="PlaceOrder" asp-controller="Cart" method="post">
+                                <div class="mb-3">
+                                    <label for="ReceiverName" class="form-label">Họ tên người nhận</label>
+                                    <input type="text" name="ReceiverName" class="form-control" placeholder="Nhập họ tên" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="ShippingAddress" class="form-label">Địa chỉ giao hàng</label>
+                                    <input type="text" name="ShippingAddress" class="form-control" placeholder="Nhập địa chỉ giao hàng" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="Note" class="form-label">Ghi chú</label>
+                                    <textarea name="Note" class="form-control"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="DeliveryDate" class="form-label">Ngày mong muốn giao</label>
+                                    <input type="date" name="DeliveryDate" class="form-control" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label>Phương thức thanh toán:</label>
+                                    <input type="radio" name="paymentMethod" value="COD" checked> Thanh toán khi nhận hàng (COD)
+                                    <input type="radio" name="paymentMethod" value="QR Bank"> Thanh toán qua ngân hàng
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Xác nhận đặt hàng</button>
+                            </form>
+                        }
+
+                        else
+
+                        {
+                            <p>Giỏ hàng của bạn hiện tại đang trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AJAX cập nhật số lượng -->
+<script>
+    document.querySelectorAll('.update-quantity').forEach(input => {
+        input.addEventListener('change', function () {
+            let productId = this.dataset.id;
+            let quantity = this.value;
+
+            fetch('/Cart/UpdateCart?id=' + productId + '&quantity=' + quantity, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Cập nhật tổng tiền trong giỏ hàng
+                    document.getElementById('total-cart').innerText = data.totalCart + ' VND';
+
+                    // Cập nhật giá trị total-price của sản phẩm trong giỏ hàng
+                    this.closest('tr').querySelector('.total-price').innerText = data.itemTotal + ' VND';
+
+                    // Cập nhật số lượng sản phẩm trong danh sách giỏ hàng dưới
+                    let itemElement = document.querySelector(`li[data-id="${productId}"]`);
+                    if (itemElement) {
+                        let quantityElement = itemElement.querySelector('.item-quantity');
+                        if (quantityElement) {
+                            quantityElement.innerText = quantity;
+                        }
+                    }
+                })
+                .catch(error => console.error('Lỗi khi cập nhật giỏ hàng:', error));
+        });
+    });
+</script>

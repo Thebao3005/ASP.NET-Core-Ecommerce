@@ -1,0 +1,99 @@
+﻿@model IEnumerable<ECommerceMVC.ViewModels.HangHoaVM>
+
+<h3>Có <b>@ViewBag.TotalCount</b> sản phẩm đang giảm giá.</h3>
+@foreach (var item in Model)
+{
+	<div class="col-md-4">
+		<div class="rounded position-relative fruite-item">
+			<div class="fruite-img">
+				<a asp-action="Detail" asp-controller="HangHoa" asp-route-id="@item.MaHh">
+					<img src="~/Hinh/HangHoa/@item.Hinh" class="img-fluid w-100 rounded-top" alt="@item.TenHH">
+				</a>
+			</div>
+			<div class="bg-danger text-white px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">
+				<span class="countdown-timer" data-end="@item.EndTime?.ToString("yyyy-MM-ddTHH:mm:ss")">Đang tải...</span>
+			</div>
+			<div class="p-4 border border-secondary border-top-0 rounded-bottom">
+				<a asp-action="Detail" asp-controller="HangHoa" asp-route-id="@item.MaHh"><h4>@item.TenHH</h4></a>
+				<p>@item.MoTaDonVi</p>
+                @if (item.DaThamGia)
+                {
+                    <div class="alert alert-success d-flex align-items-center mt-2" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <div>Đã tham gia khuyến mại sản phẩm</div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Hiển thị nút tham gia nếu chưa tham gia -->
+                    <form asp-controller="MuaChung" asp-action="ThamGia" method="post">
+                        <input type="hidden" name="maGG" value="@item.MaGG" />
+                        <button type="submit" class="btn btn-primary">Tham gia mua chung</button>
+                    </form>
+                }
+                <button class="btn btn-outline-primary rounded-pill mt-2" onclick="showPromoModal(@item.MaHh, '@item.TenHh','@item.Hinh',@item.DonGia)">
+                    <i class="fa fa-tags me-1"></i> Xem khuyến mãi
+                </button>
+
+			</div>
+		</div>
+	</div>
+}
+<script>
+    function startCountdown() {
+        const countdowns = document.querySelectorAll(".countdown-timer");
+        countdowns.forEach(timer => {
+            const endTime = new Date(timer.dataset.end).getTime();
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const distance = endTime - now;
+
+                if (distance < 0) {
+                    timer.innerText = "Đã kết thúc";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                timer.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", startCountdown);
+
+    function showPromoModal(maHh, tenHh, hinh, donGia) {
+        fetch(`/MuaChung/ChiTietGiamGia?maHh=${maHh}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const giaGoc = parseFloat(donGia);
+                    const giam = parseFloat(data.tyLeGG);
+                    const giaSauGiam = giaGoc * (1 - giam / 100);
+
+                    document.getElementById("promoImage").src = `/Hinh/HangHoa/${hinh}`;
+                    document.getElementById("promoTenHh").innerText = tenHh;
+                    document.getElementById("promoGiaGoc").innerText = giaGoc.toLocaleString() + " VND";
+                    document.getElementById("promoGiaSauGiam").innerText = giaSauGiam.toLocaleString() + " VND";
+                    document.getElementById("promoTyLeGG").innerText = giam + " %";
+                    document.getElementById("promoNguoiToiThieu").innerText = data.nguoiToiThieu + " người";
+                    document.getElementById("promoSoNguoiThamGia").innerText = data.soNguoiThamGia + " người";
+                    document.getElementById("promoStartTime").innerText = data.startTime;
+                    document.getElementById("promoEndTime").innerText = data.endTime;
+
+                    new bootstrap.Modal(document.getElementById("promoModal")).show();
+                } else {
+                    alert(data.message || "Không tìm thấy chương trình khuyến mãi.");
+                }
+            })
+            .catch(error => console.error("Lỗi khi lấy dữ liệu khuyến mãi:", error));
+    }
+
+</script>

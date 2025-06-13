@@ -1,0 +1,774 @@
+﻿@model List<ECommerceMVC.Data.HangHoa>
+
+@{
+    ViewData["Title"] = "Quản Lý Sản Phẩm";
+    Layout = null;
+    var role = Context.Session.GetString("UserRole");
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Sản Phẩm</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+        /* Sidebar */
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+            /*////////////////////////////////////////////////////////////////*/
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-toggle {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+  <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+        <h4 class="text-center">Quản Lý Sản Phẩm</h4>
+        <div class="user-info">
+            <i class="fas fa-user-circle"></i> Xin Chào,  @Context.Session.GetString("UserName")!
+        </div>
+            <a href="/Admin/Index"><i class="fas fa-home"></i> Trang Chủ</a>
+            @if (role != "NhanVien")
+            {
+                <a href="/Admin/KhachHang"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+                <a href="/Admin/NhanVien"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+            }
+            <a href="/Admin/SanPham" class="active"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="container mt-4">
+            <h2 class="text-center" style="color: #81c408;">Quản Lý Sản Phẩm</h2>
+            <div class="d-flex justify-content-between mb-3">
+                <button id="btnThemSanPham" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Thêm Sản Phẩm
+                </button>
+
+                <!-- Dropdown chọn danh mục -->
+                <select id="selectDanhMuc" class="form-select w-auto">
+                    <option value="0">Tất cả danh mục</option>
+                    @foreach (var dm in ViewBag.DanhMuc)
+                    {
+                        <option value="@dm.MaLoai">@dm.TenLoai</option>
+                    }
+                </select>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Sản Phẩm</th>
+                            <th>Hình Ảnh</th>
+                            <th>Giá</th>
+                            <th>Giảm Giá (%)</th>
+                            <th>Số Lần Xem</th>
+                            <th>Danh Mục</th>
+                            <th>Nhà Cung Cấp</th>
+                            <th>Mua Chung</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tableBody" class="text-center">
+                        @foreach (var sp in Model)
+                        {
+                            <tr data-danhmuc="@sp.MaLoai">
+                                <td>@sp.MaHh</td>
+                                <td>@sp.TenHh</td>
+                                <td>
+                                    <img src="~/Hinh/HangHoa/@(string.IsNullOrEmpty(sp.Hinh) ? "default.jpg" : sp.Hinh)"
+                                         class="img-thumbnail" style="width: 80px; height: 80px;">
+                                </td>
+                                <td>@sp.DonGia VNĐ</td>
+                                <td>@sp.GiamGia %</td>
+                                <td>@(sp.SoLanXem ?? 0)</td>
+                                <td>@(sp.MaLoaiNavigation?.TenLoai ?? "Không xác định")</td>
+                                <td>@(sp.MaNccNavigation?.TenCongTy ?? "Không xác định")</td>
+                                <!-- Switch Bật/Tắt Giảm Giá -->
+                                <td>
+                                    <input type="checkbox" class="toggle-discount" data-id="@sp.MaHh" @(sp.IsGiamGia ? "checked" : "")>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <button class="btn btn-warning btn-sm btnEditProduct"
+                                                data-id="@sp.MaHh"
+                                                data-ten="@sp.TenHh"
+                                                data-gia="@sp.DonGia"
+                                                data-giamgia="@sp.GiamGia"
+                                                data-motadonvi="@sp.MoTaDonVi"
+                                                data-mota="@sp.MoTa"
+                                                data-loai="@sp.MaLoai"
+                                                data-ncc="@sp.MaNcc"
+                                                data-hinh="@sp.Hinh"
+                                                data-bs-toggle="tooltip" data-bs-placement="top" title="Sửa sản phẩm">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm btn-delete"
+                                                data-id="@sp.MaHh"
+                                                data-bs-toggle="tooltip" data-bs-placement="top" title="Xóa sản phẩm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi Tiết -->
+    <div class="modal fade" id="modalChiTietSanPham" tabindex="-1" aria-labelledby="modalChiTietLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="modalChiTietLabel">
+                        <i class="fas fa-box"></i> Chi Tiết Sản Phẩm
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Cột Hình Ảnh -->
+                        <div class="col-md-5 text-center">
+                            <img id="chiTietHinh" src="" class="img-fluid rounded shadow-lg" style="max-width: 100%; border-radius: 10px;">
+                        </div>
+
+                        <!-- Cột Thông Tin Sản Phẩm -->
+                        <div class="col-md-7">
+                            <h4 id="chiTietTen" class="fw-bold text-primary"></h4>
+                            <hr>
+                            <div class="mb-2">
+                                <span class="badge bg-success px-3 py-2">
+                                    Giá: <span id="chiTietGia" class="fw-bold"></span> VNĐ
+                                </span>
+                                <span class="badge bg-danger px-3 py-2 ms-2">
+                                    Giảm Giá: <span id="chiTietGiamGia" class="fw-bold"></span>%
+                                </span>
+                            </div>
+                            <p><strong><i class="fas fa-ruler"></i> Kích Thước:</strong> <span id="chiTietMoTaDonVi"></span></p>
+                            <p><strong><i class="fas fa-info-circle"></i> Mô Tả:</strong> <span id="chiTietMoTa"></span></p>
+                            <p><strong><i class="fas fa-list"></i> Danh Mục:</strong> <span id="chiTietDanhMuc"></span></p>
+                            <p><strong><i class="fas fa-truck"></i> Nhà Cung Cấp:</strong> <span id="chiTietNhaCungCap"></span></p>
+                            <p><strong><i class="fas fa-eye"></i> Số Lần Xem:</strong> <span id="chiTietSoLanXem"></span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Thêm Sản Phẩm -->
+    <div class="modal fade" id="modalThemSanPham" tabindex="-1" aria-labelledby="themSanPhamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="themSanPhamLabel"><i class="fas fa-box-open"></i> Thêm Sản Phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formThemSanPham">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên Sản Phẩm:</label>
+                                    <input type="text" class="form-control" id="tenHH" name="TenHH" placeholder="Nhập tên sản phẩm" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giá:</label>
+                                    <input type="number" class="form-control" id="donGia" name="DonGia" placeholder="Nhập giá" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giảm Giá (%):</label>
+                                    <input type="number" class="form-control" id="giamGia" name="GiamGia" min="0" max="100" placeholder="Nhập phần trăm giảm giá">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Danh Mục:</label>
+                                    <select class="form-select" id="maLoai" name="MaLoai">
+                                        @foreach (var item in ViewBag.DanhMuc)
+                                        {
+                                            <option value="@item.MaLoai">@item.TenLoai</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nhà Cung Cấp:</label>
+                                    <select class="form-select" id="maNcc" name="MaNcc">
+                                        @foreach (var item in ViewBag.NhaCungCap)
+                                        {
+                                            <option value="@item.MaNcc">@item.TenCongTy</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mô Tả Kích Thước:</label>
+                                    <textarea class="form-control" id="moTaDonVi" name="MoTaDonVi" rows="2" placeholder="Nhập mô tả kích thước"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mô Tả:</label>
+                                    <textarea class="form-control" id="moTa" name="MoTa" rows="4" placeholder="Nhập mô tả sản phẩm"></textarea>
+                                </div>
+                                <div class="mb-3 text-center">
+                                    <label class="form-label">Hình Ảnh:</label>
+                                    <input type="file" class="form-control" id="hinhFile" name="HinhFile" accept="image/*">
+                                    <img id="previewHinh" src="/img/no-image.png" class="img-thumbnail mt-2" style="max-width: 200px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Thêm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal Sửa Sản Phẩm -->
+    <div class="modal fade" id="modalSuaSanPham" tabindex="-1" aria-labelledby="suaSanPhamLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title" id="suaSanPhamLabel"><i class="fas fa-edit"></i> Sửa Sản Phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="formSuaSanPham">
+                        <input type="hidden" id="idSanPhamSua" name="MaHh">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên Sản Phẩm:</label>
+                                    <input type="text" class="form-control" id="tenHHSua" name="TenHH" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giá:</label>
+                                    <input type="number" class="form-control" id="donGiaSua" name="DonGia" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Giảm Giá (%):</label>
+                                    <input type="number" class="form-control" id="giamGiaSua" name="GiamGia" min="0" max="100">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Danh Mục:</label>
+                                    <select class="form-select" id="maLoaiSua" name="MaLoai">
+                                        @foreach (var item in ViewBag.DanhMuc)
+                                        {
+                                            <option value="@item.MaLoai">@item.TenLoai</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nhà Cung Cấp:</label>
+                                    <select class="form-select" id="maNccSua" name="MaNcc">
+                                        @foreach (var item in ViewBag.NhaCungCap)
+                                        {
+                                            <option value="@item.MaNcc">@item.TenCongTy</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mô Tả Kích Thước:</label>
+                                    <textarea class="form-control" id="moTaDonViSua" name="MoTaDonVi" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mô Tả:</label>
+                                    <textarea class="form-control" id="moTaSua" name="MoTa" rows="4"></textarea>
+                                </div>
+                                <div class="mb-3 text-center">
+                                    <label class="form-label">Hình Ảnh Hiện Tại:</label>
+                                    <img id="previewHinhSua" src="" class="img-thumbnail mt-2" style="max-width: 200px;">
+                                    <label class="form-label">Hình Ảnh Mới:</label>
+                                    <input type="file" class="form-control" id="hinhFileSua" name="HinhFile">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-warning"><i class="fas fa-save"></i> Cập Nhật</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 🔴 Script AJAX -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+            $("#selectDanhMuc").change(function () {
+                var selectedDanhMuc = $(this).val();
+
+                // Lọc danh sách sản phẩm dựa trên danh mục được chọn
+                $("#tableBody tr").each(function () {
+                    var danhMucSp = $(this).data("danhmuc");
+
+                    if (selectedDanhMuc == "0" || danhMucSp == selectedDanhMuc) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+            // Kích hoạt tooltip Bootstrap
+            $(document).ready(function () {
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            });
+            //xem chi tiet 
+            $(".btnXemChiTiet").click(function () {
+                let maHh = $(this).data("id");
+
+                $.ajax({
+                    type: "GET",
+                    url: "/Admin/ChiTietSanPham",
+                    data: { id: maHh },
+                    success: function (response) {
+                        if (response.success) {
+                            let sp = response.data;
+                            $("#chiTietHinh").attr("src", "/Hinh/HangHoa/" + (sp.hinh || "default.jpg"));
+                            $("#chiTietTen").text(sp.tenHh);
+                            $("#chiTietGia").text(sp.donGia);
+                            $("#chiTietGiamGia").text(sp.giamGia);
+                            $("#chiTietMoTaDonVi").text(sp.moTaDonVi);
+                            $("#chiTietMoTa").text(sp.moTa);
+                            $("#chiTietDanhMuc").text(sp.danhMuc);
+                            $("#chiTietNhaCungCap").text(sp.nhaCungCap);
+                            $("#chiTietSoLanXem").text(sp.soLanXem || 0);
+
+                            $("#modalChiTietSanPham").modal("show");
+                        } else {
+                            Swal.fire("Lỗi!", "Không thể tải dữ liệu sản phẩm", "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire("Lỗi!", "Đã xảy ra lỗi, vui lòng thử lại sau", "error");
+                    }
+                });
+            });
+            // 🟢 Xem trước hình ảnh khi chọn file
+            $("#hinhFile").change(function (event) {
+                let file = event.target.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        $("#previewHinh").attr("src", e.target.result).show();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    $("#previewHinh").attr("src", "/img/no-image.png"); // Ảnh mặc định
+                }
+            });
+
+            // 🟢 Hiển thị modal thêm sản phẩm
+            $("#btnThemSanPham").click(function () {
+                $("#modalThemSanPham").modal("show");
+            });
+
+            // 🟢 Gửi dữ liệu thêm sản phẩm qua AJAX
+            $("#formThemSanPham").submit(function (e) {
+                e.preventDefault();
+
+                // Kiểm tra các giá trị trước khi gửi
+                let tenHH = $("#tenHH").val().trim();
+                let donGia = parseFloat($("#donGia").val());
+                let giamGia = parseFloat($("#giamGia").val());
+                let hinhAnh = $("#hinhFile")[0].files.length;
+
+                if (tenHH === "" || isNaN(donGia) || donGia <= 0) {
+                    Swal.fire("Lỗi!", "Vui lòng nhập tên sản phẩm và giá hợp lệ!", "error");
+                    return;
+                }
+
+                if (giamGia < 0 || giamGia > 100) {
+                    Swal.fire("Lỗi!", "Giảm giá phải từ 0 đến 100%!", "error");
+                    return;
+                }
+
+                if (hinhAnh === 0) {
+                    Swal.fire("Lỗi!", "Vui lòng chọn hình ảnh sản phẩm!", "error");
+                    return;
+                }
+
+                let formData = new FormData(this);
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/ThemSanPham",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function () {
+                        Swal.fire({
+                            title: "Đang xử lý...",
+                            text: "Vui lòng chờ!",
+                            showConfirmButton: false,
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    },
+                    success: function (response) {
+                        Swal.close(); // Đóng thông báo loading
+                        if (response.success) {
+                            Swal.fire("Thành công!", response.message, "success").then(() => location.reload());
+                        } else {
+                            Swal.fire("Lỗi!", response.message, "error");
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.close();
+                        let errorMessage = "Không thể thêm sản phẩm!";
+                        if (xhr.responseText) {
+                            errorMessage += ` Chi tiết: ${xhr.responseText}`;
+                        }
+                        Swal.fire("Lỗi!", errorMessage, "error");
+                    }
+                });
+            });
+
+
+
+            $(document).ready(function () {
+                // 🟢 Lọc danh sách sản phẩm khi thay đổi danh mục
+                $("#selectDanhMuc").change(function () {
+                    let selectedDanhMuc = $(this).val();
+                    localStorage.setItem("selectedDanhMuc", selectedDanhMuc); // Lưu danh mục vào localStorage
+
+                    $("#tableBody tr").each(function () {
+                        let danhMucSp = $(this).data("danhmuc");
+                        if (selectedDanhMuc == "0" || danhMucSp == selectedDanhMuc) {
+                            $(this).show();
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+                });
+
+                // 🟡 Hiển thị modal sửa sản phẩm khi click
+                $(".btnEditProduct").click(function () {
+                    $("#idSanPhamSua").val($(this).data("id"));
+                    $("#tenHHSua").val($(this).data("ten"));
+                    $("#donGiaSua").val($(this).data("gia"));
+                    $("#giamGiaSua").val($(this).data("giamgia") || 0);
+                    $("#moTaDonViSua").val($(this).data("motadonvi") || "");
+                    $("#moTaSua").val($(this).data("mota") || "");
+
+                    // Chọn loại sản phẩm
+                    $("#maLoaiSua").val($(this).data("loai"));
+
+                    // Chọn nhà cung cấp
+                    $("#maNccSua").val($(this).data("ncc"));
+
+                    // Hiển thị hình ảnh
+                    let hinh = $(this).data("hinh");
+                    if (hinh) {
+                        $("#previewHinhSua").attr("src", "/Hinh/HangHoa/" + hinh);
+                    } else {
+                        $("#previewHinhSua").attr("src", "/img/no-image.png");
+                    }
+
+                    // Hiển thị modal
+                    $("#modalSuaSanPham").modal("show");
+                });
+
+                // 🟢 Gửi dữ liệu cập nhật sản phẩm qua AJAX
+                $("#formSuaSanPham").submit(function (e) {
+                    e.preventDefault();
+                    let formData = new FormData(this);
+                    let selectedDanhMuc = $("#selectDanhMuc").val(); // Lấy danh mục hiện tại trước khi gửi
+
+                    localStorage.setItem("selectedDanhMuc", selectedDanhMuc); // Lưu danh mục trước khi reload
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/SuaSanPham",
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire("Thành công!", response.message, "success").then(() => location.reload());
+                            } else {
+                                Swal.fire("Lỗi!", response.message, "error");
+                            }
+                        },
+                        error: function () {
+                            Swal.fire("Lỗi!", "Không thể cập nhật sản phẩm", "error");
+                        }
+                    });
+                });
+
+                // 🟢 Giữ danh mục sau khi reload trang
+                let savedDanhMuc = localStorage.getItem("selectedDanhMuc");
+                if (savedDanhMuc) {
+                    $("#selectDanhMuc").val(savedDanhMuc).trigger("change");
+                    localStorage.removeItem("selectedDanhMuc"); // Xóa sau khi áp dụng để tránh bị giữ mãi
+                }
+            });
+
+            // 🔴 Xóa sản phẩm & giữ danh mục hiện tại
+            $(".btn-delete").click(function () {
+                let id = $(this).data("id");
+                let selectedDanhMuc = $("#selectDanhMuc").val(); // Lưu danh mục trước khi xóa
+                localStorage.setItem("selectedDanhMuc", selectedDanhMuc);
+
+                Swal.fire({
+                    title: "Bạn có chắc muốn xóa?",
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Xóa",
+                    cancelButtonText: "Hủy"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post("/Admin/XoaSanPham", { id: id }, function (response) {
+                            Swal.fire("Đã xóa!", response.message, "success").then(() => location.reload());
+                        });
+                    }
+                });
+            });
+
+            // 🟢 Giữ danh mục sau khi reload trang
+            $(document).ready(function () {
+                let savedDanhMuc = localStorage.getItem("selectedDanhMuc");
+                if (savedDanhMuc) {
+                    $("#selectDanhMuc").val(savedDanhMuc).trigger("change");
+                    localStorage.removeItem("selectedDanhMuc"); // Xóa sau khi áp dụng
+                }
+            });
+        });
+        $(document).ready(function () {
+        $(".toggle-discount").change(function () {
+            var maHh = $(this).data("id");
+            var isGiamGia = $(this).is(":checked");
+
+            $.ajax({
+                url: "/Admin/CapNhatGiamGia",
+                type: "POST",
+                data: { maHh: maHh, isGiamGia: isGiamGia },
+                success: function (response) {
+                    if (response.success) {
+                        alert("Cập nhật trạng thái giảm giá thành công!");
+                    } else {
+                        alert("Cập nhật thất bại!");
+                    }
+                },
+                error: function () {
+                    alert("Đã xảy ra lỗi!");
+                }
+            });
+        });
+    });
+                    let timeoutId;  // Biến để lưu ID của setTimeout
+
+                // Hàm để thu gọn sidebar
+                function collapseSidebar() {
+                    var sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+                }
+
+                // Hàm để mở rộng sidebar
+                function expandSidebar() {
+                    var sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+                }
+                // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+                function resetInactivityTimer() {
+                    // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                    // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+                    timeoutId = setTimeout(collapseSidebar, 1000);
+                }
+                // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+                var sidebar = document.querySelector('.sidebar');
+                sidebar.addEventListener('mousemove', function() {
+                    expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+                    resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+                });
+
+                // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+                document.body.addEventListener('mousemove', function(event) {
+                    if (!sidebar.contains(event.target)) {
+                        // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+                        resetInactivityTimer();
+                    }
+                });
+                // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+                function toggleSidebar() {
+                    var sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('collapsed');
+                    clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+                }
+    </script>
+</body>
+</html>

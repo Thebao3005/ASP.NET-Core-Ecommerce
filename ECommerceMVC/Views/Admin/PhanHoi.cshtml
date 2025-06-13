@@ -1,0 +1,556 @@
+﻿@{
+    ViewData["Title"] = "Quản Lý Phản Hồi";
+    Layout = null;
+    var role = Context.Session.GetString("UserRole");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Phản Hồi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+        /* Sidebar */
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+            /*////////////////////////////////////////////////////////////////*/
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-toggle {
+            cursor: pointer;
+        }
+        /* Cải tiến card để đẹp và hiện đại */
+        .card {
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            /* Cải thiện hình ảnh sản phẩm */
+            .card img {
+                object-fit: cover;
+                height: 150px;
+                width: 100%;
+                border-radius: 8px;
+            }
+
+        /* Cải thiện phần đánh giá */
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        /* Avatar của người dùng */
+        .d-flex img {
+            border-radius: 50%;
+            width: 35px; /* Kích thước ảnh người dùng */
+            height: 35px;
+        }
+
+        /* Phần thông tin ngày đánh giá */
+        .d-flex .ms-3 small {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        /* Đánh giá sao */
+        .text-warning .bi-star-fill {
+            color: #ffb400;
+        }
+
+        /* Cải thiện phần bình luận */
+        .card-body p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .card-body strong {
+            color: #007bff;
+        }
+
+        /* Đảm bảo layout responsive trên các thiết bị nhỏ */
+        @@media (max-width: 768px) {
+            .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .card-body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+        <h4 class="text-center">Quản Lý Phản Hồi</h4>
+        <div class="user-info">
+            <i class="fas fa-user-circle"></i> Xin Chào,  @Context.Session.GetString("UserName")!
+        </div>
+            <a href="/Admin/Index" ><i class="fas fa-home"></i> Trang Chủ</a>
+            @if (role != "NhanVien")
+            {
+                <a href="/Admin/KhachHang"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+                <a href="/Admin/NhanVien"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+            }
+            <a href="/Admin/SanPham"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi" class="active"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+    <div class="content">
+        <h2 class="text-center" style="color: #81c408;">Quản Lý Phản Hồi</h2>
+        <ul class="nav nav-tabs" id="phanHoiTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#yeuThich">Đánh Giá Sản Phẩm</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#gopY">Góp Ý Khách Hàng</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Tab Đánh Giá Sản Phẩm -->
+            <div class="tab-pane fade show active" id="yeuThich">
+                <div class="row">
+                    @if (ViewBag.DanhGiaSpham != null)
+                    {
+                        @foreach (var item in ViewBag.DanhGiaSpham)
+                        {
+                            <div class="col-md-6 col-lg-6 mb-4">
+                                <div class="card shadow-lg border-0 rounded-lg">
+                                    <div class="row g-0">
+                                        <div class="col-md-4 p-3">
+                                            <img src="~/Hinh/HangHoa/@item.Hinh" class="img-fluid rounded" alt="@item.TenHh" style="object-fit: cover; height: 150px;" />
+                                            <h5 class="card-title text-success">@item.TenHh</h5>
+                                            <h6 class="card-title text-muted">Đánh giá: @item.DiemTrungBinh.ToString("0.0") ⭐</h6>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="card-body">
+                                                @foreach (var danhGia in item.DanhGia)
+                                                {
+                                                    <div class="d-flex flex-column mb-3 bg-light p-3 rounded border">
+                                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                                            <div class="d-flex align-items-center">
+                                                                <img src="~/Uploads/KhachHang/@danhGia.HinhKh" class="rounded-circle" width="35" height="35" alt="@danhGia.HoTen" />
+                                                                <div class="ms-3">
+                                                                    <p class="m-0"><strong>@danhGia.HoTen</strong></p>
+                                                                    <small class="text-muted">@danhGia.NgayDanhGia.ToString("dd/MM/yyyy")</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-warning ms-3">
+                                                                (@danhGia.SoSao ⭐)
+                                                            </div>
+                                                        </div>
+                                                        <p><strong>Bình luận:</strong> @danhGia.Comment</p>
+                                                        @if (danhGia.TraLoi.Count > 0)
+                                                        {
+                                                            <div class="bg-white p-2 border rounded mt-2">
+                                                                <p><strong>Phản hồi từ nhân viên:</strong></p>
+                                                                @foreach (var tl in danhGia.TraLoi)
+                                                                {
+                                                                    <small class="text-muted">@tl.NgayDua.ToString("dd/MM/yyyy")</small>
+                                                                    <p><strong>@tl.NhanVien:</strong> @tl.TraLoi</p>
+                                                                    <button class="btn btn-sm btn-outline-warning px-2 py-1" onclick="moModalSuaTraLoi(@tl.MaHd, '@tl.TraLoi')">
+                                                                        ✏️ Sửa
+                                                                    </button>
+                                                                }
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-success px-2 py-1" onclick="moModalTraLoi(@danhGia.MaYT)">
+                                                                💬 Trả lời
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Tab Góp Ý Khách Hàng -->
+            <div class="tab-pane fade" id="gopY">
+                <div class="row">
+                    @if (ViewBag.GopY != null)
+                    {
+                        @foreach (var item in ViewBag.GopY)
+                        {
+                            <div class="col-md-6">
+                                <div class="card mb-3 shadow p-3 border border-success rounded">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-success">@item.HoTen</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">@item.Email | @item.DienThoai</h6>
+                                        <p class="card-text"><strong>Nội Dung Góp Ý:</strong> @item.NoiDung</p>
+
+                                        @if (item.CanTraLoi)
+                                        {
+                                            <div class="bg-light p-2 rounded border">
+                                                <p class="mb-1"><strong>Phản hồi:</strong> @item.TraLoi</p>
+                                                <small class="text-muted">Ngày phản hồi: @item.NgayTl</small>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-primary btn-sm mt-2"
+                                                    data-bs-toggle="modal" data-bs-target="#modalPhanHoi"
+                                                    onclick="setReplyModal('@item.MaGy', '@item.Email', `@item.NoiDung`)">
+                                                Phản hồi
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+<!-- Modal trả lời đánh giá -->
+<!-- Modal trả lời -->
+<div class="modal fade" id="modalTraLoi" tabindex="-1" aria-labelledby="modalTraLoiLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Phản hồi đánh giá</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="maYeuThich" />
+                <div class="mb-3">
+                    <label for="noiDungPhanHoi" class="form-label">Nội dung phản hồi</label>
+                    <textarea id="noiDungPhanHoi" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="guiTraLoi()">Gửi phản hồi</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Sửa Phản Hồi -->
+<div class="modal fade" id="modalSuaTraLoi" tabindex="-1" aria-labelledby="modalSuaTraLoiLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalSuaTraLoiLabel">Sửa phản hồi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="maHdapSua" />
+                <div class="mb-3">
+                    <label for="noiDungSua" class="form-label">Nội dung phản hồi</label>
+                    <textarea class="form-control" id="noiDungSua" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="suaTraLoi()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Gửi Phản Hồi -->
+<div class="modal fade" id="modalPhanHoi" tabindex="-1" aria-labelledby="modalPhanHoiLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="post" action="/Admin/PhanHoiGY">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPhanHoiLabel">Phản hồi góp ý</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="maGopYPhanHoi" />
+
+                    <div class="mb-3">
+                        <label for="noiDungPhanHoi" class="form-label">Nội dung phản hồi</label>
+                        <textarea class="form-control" name="traLoi" id="noiDungPhanHoi" rows="4" required></textarea>
+                    </div>
+
+                    <div class="alert alert-info" id="thongTinNguoiGopY" style="display:none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Gửi phản hồi</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function setReplyModal(maGy, email, noiDung) {
+        document.getElementById("maGopYPhanHoi").value = maGy;
+        document.getElementById("noiDungPhanHoi").value = "";
+        const info = `<b>Email:</b> ${email}<br><b>Góp ý:</b> ${noiDung}`;
+        const infoDiv = document.getElementById("thongTinNguoiGopY");
+        infoDiv.innerHTML = info;
+        infoDiv.style.display = "block";
+    }
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)})
+    function moModalTraLoi(maYt) {
+        document.getElementById("maYeuThich").value = maYt;
+        var modal = new bootstrap.Modal(document.getElementById('modalTraLoi'));
+        modal.show();
+    }
+    function guiTraLoi() {
+        var maYt = document.getElementById("maYeuThich").value;
+        var traLoi = document.getElementById("noiDungPhanHoi").value;
+
+        $.ajax({
+            url: '/Admin/TraLoiDanhGia', // đổi 'TenController' thành tên thực tế
+            type: 'POST',
+            data: { MaYt: maYt, TraLoi: traLoi },
+            success: function (response) {
+                if (response.success) {
+                    alert("Phản hồi thành công!");
+                    location.reload(); // tải lại trang để cập nhật UI
+                } else {
+                    alert("Lỗi: " + response.message);
+                }
+            },
+            error: function () {
+                alert("Có lỗi xảy ra khi gửi phản hồi!");
+            }
+        });
+    }
+    // Xử lý submit form bằng AJAX
+    function moModalSuaTraLoi(maHdap, noiDung) {
+        $('#maHdapSua').val(maHdap);
+        $('#noiDungSua').val(noiDung);
+        $('#modalSuaTraLoi').modal('show');
+    }
+
+    function suaTraLoi() {
+        var maHdap = $('#maHdapSua').val();
+        var noiDungMoi = $('#noiDungSua').val();
+
+        $.ajax({
+            url: '/Admin/CapNhatTraLoi',
+            type: 'POST',
+            data: { MaHdap: maHdap, NoiDungMoi: noiDungMoi },
+            success: function (response) {
+                if (response.success) {
+                    alert('✅ Cập nhật phản hồi thành công!');
+                    location.reload(); // Refresh trang để hiển thị phản hồi mới
+                } else {
+                    alert('❌ Cập nhật không thành công!');
+                }
+            },
+            error: function () {
+                alert('❌ Có lỗi xảy ra!');
+            }
+        });
+    }
+
+    let timeoutId;  // Biến để lưu ID của setTimeout
+
+    // Hàm để thu gọn sidebar
+    function collapseSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+    }
+
+    // Hàm để mở rộng sidebar
+    function expandSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+    }
+    // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+    function resetInactivityTimer() {
+        // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+        timeoutId = setTimeout(collapseSidebar, 1000);
+    }
+    // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+    var sidebar = document.querySelector('.sidebar');
+    sidebar.addEventListener('mousemove', function() {
+        expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+        resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+    });
+
+    // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+    document.body.addEventListener('mousemove', function(event) {
+        if (!sidebar.contains(event.target)) {
+            // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+            resetInactivityTimer();
+        }
+    });
+    // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+    function toggleSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('collapsed');
+        clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+    }
+</script>

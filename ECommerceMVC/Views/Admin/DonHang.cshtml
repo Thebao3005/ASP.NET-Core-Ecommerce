@@ -1,0 +1,568 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "Quản Lý Đơn Hàng";
+    Layout = null;
+    var role = Context.Session.GetString("UserRole");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Đơn Hàng</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+            /*////////////////////////////////////////////////////////////////*/
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tabs .nav-link {
+            color: #fff;
+            background-color: #81c408;
+            border-radius: 5px;
+            margin: 0 5px;
+            padding: 10px 15px;
+            transition: 0.3s;
+        }
+
+            .nav-tabs .nav-link:hover {
+                background-color: #f57c00;
+                color: #fff;
+            }
+
+            .nav-tabs .nav-link.active {
+                background-color: #f57c00;
+                color: #fff;
+            }
+
+        .content {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-icon {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+        <h4 class="text-center">Quản Lý Đơn Hàng</h4>
+        <div class="user-info">
+            <i class="fas fa-user-circle"></i> Xin Chào, @Context.Session.GetString("UserName")!
+        </div>
+            <a href="/Admin/Index" ><i class="fas fa-home"></i> Trang Chủ</a>
+            @if (role != "NhanVien")
+            {
+                <a href="/Admin/KhachHang"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+                <a href="/Admin/NhanVien"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+            }
+            <a href="/Admin/SanPham"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang" class="active"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+    <div class="content">
+        <h2 class="text-center" style="color: #81c408;">Quản Lý Đơn Hàng</h2>
+
+        <ul class="nav nav-tabs" id="donHangTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-status="0" href="#">
+                    <i class="fas fa-hourglass-start status-icon"></i> Chờ Duyệt
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-status="3" href="#">
+                    <i class="fas fa-shipping-fast status-icon"></i> Đang Vận Chuyển
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-status="4" href="#">
+                    <i class="fas fa-hand-holding-usd status-icon"></i> Chờ Xác Nhận
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-status="5" href="#">
+                    <i class="fas fa-check-circle status-icon"></i> Đã Nhận
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-status="-1" href="#">
+                    <i class="fas fa-times-circle status-icon"></i> Đã Hủy
+                </a>
+            </li>
+        </ul>
+
+        <div id="donHangTable" class="mt-3">
+            <!-- Dữ liệu đơn hàng sẽ được load ở đây -->
+        </div>
+    </div>
+
+</body>
+</html>
+
+
+<!-- Modal Hiển Thị Chi Tiết Đơn Hàng -->
+<div class="modal fade" id="modalChiTietDonHang" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Chi Tiết Đơn Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <tr><th>Mã Đơn Hàng:</th><td id="modalMaHd"></td></tr>
+                    <tr><th>Khách Hàng:</th><td id="modalHoTen"></td></tr>
+                    <tr><th>Ngày Đặt:</th><td id="modalNgayDat"></td></tr>
+                    <tr><th>Ngày Cần:</th><td id="modalNgayCan"></td></tr>
+                    <tr><th>Ngày Giao:</th><td id="modalNgayGiao"></td></tr>
+                    <tr><th>Địa Chỉ Giao Hàng:</th><td id="modalDiaChiGiaoHang"></td></tr>
+                    <tr><th>Ghi Chú:</th><td id="modalGhiChu"></td></tr>
+                    <tr><th>Trạng Thái:</th><td><span id="modalTrangThai" class="badge"></span></td></tr>
+                </table>
+                <h6>Danh Sách Sản Phẩm</h6>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Hình</th>
+                            <th>Tên Sản Phẩm</th>
+                            <th>Số Lượng</th>
+                            <th>Giá</th>
+                            <th>Thành Tiền</th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="modalChiTietSanPham">
+                        <!-- Dữ liệu sẽ được AJAX đổ vào đây -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Duyệt Đơn Hàng -->
+<div class="modal fade" id="modalDuyetDonHang" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Duyệt Đơn Hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="ngayGiaoHang">Chọn Ngày Giao:</label>
+                <input type="date" id="ngayGiaoHang" class="form-control">
+                <input type="hidden" id="hiddenMaHd">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnXacNhanDuyet">Duyệt Đơn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        function loadDonHang(trangThai) {
+            $("#donHangTable").html('<p class="text-center">Đang tải dữ liệu...</p>');
+
+            $.ajax({
+                url: "/Admin/GetDonHangTheoTrangThai",
+                type: "GET",
+                data: { trangThai: trangThai },
+                dataType: "json",
+                success: function (data) {
+                    let html = `<table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Mã ĐH</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Ngày Đặt</th>
+                                                ${trangThai === 4 ? '<th>Ngày Giao</th>' : ''}
+                                        <th>Trạng Thái</th>
+                                        <th>Hành Động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                    if (data.length === 0) {
+                        html += `<tr><td colspan="5" class="text-center">Không có đơn hàng nào</td></tr>`;
+                    } else {
+                        data.forEach(don => {
+                            let trangThaiText = "";
+                            let badgeClass = "";
+                            switch (don.maTrangThai) {
+                                case 0:
+                                    trangThaiText = "Chờ duyệt";
+                                    badgeClass = "bg-warning";
+                                    actionButton0 = `<button class="btn btn-success btnDuyet" data-id="${don.maHd}">Duyệt</button>`;
+                                    break;
+                                case -1:
+                                    trangThaiText = "Đã hủy";
+                                    badgeClass = "bg-danger";
+                                    break;
+                                case 3:
+                                    trangThaiText = "Đang vận chuyển";
+                                    badgeClass = "bg-primary";
+                                    actionButton3 = `<button class="btn btn-warning btnChuyenTrangThai" data-id="${don.maHd}">Chuyển trạng thái</button>`;
+                                    break;
+                                case 4:
+                                    trangThaiText = "Chờ người dùng xác nhận nhận hàng";
+                                    badgeClass = "bg-info";
+                                    break;
+                                case 5:
+                                    trangThaiText = "Đã nhận";
+                                    badgeClass = "bg-success";
+                                    break;
+                            }
+                            html += `
+                                        <tr>
+                                            <td>${don.maHd}</td>
+                                            <td>${don.hoTen}</td>
+                                            <td>${don.ngayDat}</td>
+                                                ${trangThai === 4 ? '<th>Ngày Giao</th>' : ''}
+                                            <td><span class="badge ${badgeClass}">${trangThaiText}</span></td>
+                                            <td>
+                                                    ${don.maTrangThai === 0 ? actionButton0 : ""}
+                                                        ${don.maTrangThai === 3 ? actionButton3 : ""}
+                                                <button class="btn btn-info btnChiTiet" data-id="${don.maHd}">
+                                                    Xem
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                        });
+                    }
+
+                    html += "</tbody></table>";
+                    $("#donHangTable").html(html);
+                }
+            });
+        }
+
+        // Khi bấm vào tab
+        $("#donHangTabs a.nav-link").click(function (e) {
+            e.preventDefault();
+            $("#donHangTabs a.nav-link").removeClass("active");
+            $(this).addClass("active");
+
+            let trangThai = $(this).data("status");
+            loadDonHang(trangThai);
+        });
+
+        // Khi bấm vào nút "Xem"
+        $(document).on("click", ".btnChiTiet", function () {
+            let maHd = $(this).data("id");
+
+            $.ajax({
+                url: "/Admin/GetChiTietDonHang",
+                type: "GET",
+                data: { maHd: maHd },
+                dataType: "json",
+                success: function (don) {
+                    $("#modalMaHd").text(don.maHd);
+                    $("#modalHoTen").text(don.hoTen);
+                    $("#modalNgayDat").text(don.ngayDat);
+                    $("#modalNgayCan").text(don.ngayCan);
+                    $("#modalNgayGiao").text(don.ngayGiao);
+                    $("#modalGhiChu").text(don.ghiChu);
+                    $("#modalDiaChiGiaoHang").text(don.diaChi);
+                    $("#modalTongTienHoaDon").text(don.tongTien.toLocaleString() + " VNĐ");
+                    let trangThaiText = "";
+                    let badgeClass = "";
+                    switch (don.maTrangThai) {
+                        case 0:
+                            trangThaiText = "Chờ duyệt";
+                            badgeClass = "bg-warning";
+
+                            break;
+                        case -1:
+                            trangThaiText = "Đã hủy";
+                            badgeClass = "bg-danger";
+                            break;
+                        case 3:
+                            trangThaiText = "Đang vận chuyển";
+                            badgeClass = "bg-primary";
+                            break;
+                        case 4:
+                            trangThaiText = "Chờ người dùng xác nhận nhận hàng";
+                            badgeClass = "bg-info";
+                            break;
+                        case 5:
+                            trangThaiText = "Đã nhận";
+                            badgeClass = "bg-success";
+                            break;
+                    }
+                    $("#modalTrangThai").text(trangThaiText).attr("class", `badge ${badgeClass}`);
+
+                    let chiTietHtml = "";
+                    don.chiTietHds.forEach(sp => {
+                        chiTietHtml += `
+                                    <tr>
+                                    <td><img src="/Hinh/HangHoa/${sp.hinh}" alt="Hình ảnh" style="width: 50px; height: 50px;"></td>
+                                        <td>${sp.tenSp}</td>
+                                        <td>${sp.soLuong}</td>
+                                        <td>${sp.gia}</td>
+                                         <td>${(sp.soLuong * sp.gia).toLocaleString()} VNĐ</td>
+                                    </tr>
+                                `;
+                    });
+                    // Thêm hàng tổng tiền của hóa đơn vào bảng
+                    chiTietHtml += `
+                        <tr class="fw-bold">
+                            <td colspan="4" class="text-end">Tổng tiền hóa đơn:</td>
+                            <td>${don.tongTien.toLocaleString()} VNĐ</td>
+                        </tr>
+                    `;
+                    $("#modalChiTietSanPham").html(chiTietHtml);
+
+                    $("#modalChiTietDonHang").modal("show");
+                }
+            });
+        });
+
+        // Tải danh sách "Chờ duyệt" mặc định
+        loadDonHang(0);
+    });
+    // Khi bấm vào nút "Duyệt"
+    $(document).on("click", ".btnDuyet", function () {
+        let maHd = $(this).data("id");
+        $("#hiddenMaHd").val(maHd);
+        $("#modalDuyetDonHang").modal("show");
+    });
+
+    // Khi xác nhận duyệt đơn
+    $("#btnXacNhanDuyet").click(function () {
+        let maHd = $("#hiddenMaHd").val();
+        let ngayGiao = $("#ngayGiaoHang").val();
+
+        if (!ngayGiao) {
+            alert("Vui lòng chọn ngày giao hàng!");
+            return;
+        }
+
+        $.ajax({
+            url: "/Admin/DuyetDonHang",
+            type: "POST",
+            data: { maHd: maHd, ngayGiao: ngayGiao },
+            success: function (response) {
+                alert("Đơn hàng đã được duyệt thành công!");
+                $("#modalDuyetDonHang").modal("hide");
+                loadDonHang(0); // Tải lại danh sách "Chờ duyệt"
+            },
+            error: function () {
+                alert("Có lỗi xảy ra khi duyệt đơn hàng!");
+            }
+        });
+    });
+    //Chuyen trang thai don hang
+    $(document).on("click", ".btnChuyenTrangThai", function () {
+        let maHd = $(this).data("id");
+
+        if (confirm("Bạn có chắc muốn chuyển đơn hàng này sang trạng thái 'Chờ người dùng xác nhận nhận hàng'?")) {
+            $.ajax({
+                url: "/Admin/CapNhatTrangThaiDonHang",
+                type: "POST",
+                data: { maHd: maHd, trangThaiMoi: 4 },
+                success: function (response) {
+                    alert(response.message);
+                    loadDonHang(3); // Load lại danh sách đơn hàng đang vận chuyển
+                },
+                error: function () {
+                    alert("Có lỗi xảy ra, vui lòng thử lại!");
+                }
+            });
+        }
+    });
+        let timeoutId;  // Biến để lưu ID của setTimeout
+
+        // Hàm để thu gọn sidebar
+        function collapseSidebar() {
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+        }
+
+        // Hàm để mở rộng sidebar
+        function expandSidebar() {
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+        }
+        // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+        function resetInactivityTimer() {
+            // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+            timeoutId = setTimeout(collapseSidebar, 1000);
+        }
+        // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.addEventListener('mousemove', function() {
+            expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+            resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+        });
+
+        // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+        document.body.addEventListener('mousemove', function(event) {
+            if (!sidebar.contains(event.target)) {
+                // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+                resetInactivityTimer();
+            }
+        });
+        // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+        function toggleSidebar() {
+            var sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+            clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+        }
+</script>
+

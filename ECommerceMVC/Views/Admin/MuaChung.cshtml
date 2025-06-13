@@ -1,0 +1,708 @@
+﻿@using ECommerceMVC.Models.ViewModels
+@{
+    ViewData["Title"] = "Quản Lý Mua Chung";
+    Layout = null;
+    var role = Context.Session.GetString("UserRole");
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Quản Trị</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Tổng thể body */
+        body {
+            background-color: #f4f7f9;
+        }
+
+        /* Sidebar */
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #81c408, #5a9606);
+            color: white;
+            padding-top: 20px;
+            box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            /* Tiêu đề */
+            .sidebar h4 {
+                text-transform: uppercase;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 15px;
+                padding: 10px;
+                text-align: center;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            }
+
+            /* Thông tin user */
+            .sidebar .user-info {
+                text-align: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+                font-size: 16px;
+            }
+
+                .sidebar .user-info i {
+                    font-size: 30px;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+            /* Các mục menu */
+            .sidebar a {
+                display: block;
+                color: white;
+                font-size: 16px;
+                padding: 12px 20px;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                border-radius: 5px;
+                margin: 5px 10px;
+            }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+                /* Hover & Active */
+                .sidebar a:hover, .sidebar a.active {
+                    background-color: rgba(255, 255, 255, 0.2);
+                    transform: translateX(5px);
+                }
+
+                /* Nút đăng xuất */
+                .sidebar a.logout {
+                    position: absolute;
+                    bottom: 20px;
+                    width: 90%;
+                    left: 5%;
+                    background: #ff8c00; /* Màu cam */
+                    text-align: center;
+                    font-weight: bold;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a.logout:hover {
+                        background: #e07b00; /* Màu cam đậm hơn khi hover */
+                        transform: translateX(0);
+                    }
+
+            /* Ẩn sidebar khi ở trạng thái thu gọn */
+            .sidebar.collapsed {
+                width: 60px; /* Kích thước sidebar khi thu gọn */
+            }
+
+                /* Chỉ hiển thị biểu tượng menu khi sidebar thu gọn */
+                .sidebar.collapsed .sidebar-links {
+                    display: none;
+                }
+
+                /* Hiển thị biểu tượng ba gạch khi sidebar thu gọn */
+                .sidebar.collapsed .menu-icon {
+                    display: block;
+                    font-size: 30px;
+                    text-align: center;
+                    margin-top: 10px;
+                }
+
+            /* Hiển thị lại tất cả các mục trong sidebar khi sidebar không thu gọn */
+            .sidebar .sidebar-links {
+                margin-top: 20px;
+            }
+
+            /* CSS cho icon menu */
+            .sidebar.collapsed .menu-icon {
+                cursor: pointer;
+            }
+
+            .sidebar.collapsed ~ .content {
+                margin-left: 60px; /* Dịch chuyển nội dung sang phải khi sidebar thu gọn */
+            }
+        /* CSS để ẩn sidebar khi không có tương tác */
+        .hidden {
+            display: none;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    #promoKhachHangList li:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#promoKhachHangList img {
+    object-fit: cover;
+    border: 2px solid #dee2e6;
+}
+
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar collapsed">
+        <!-- Biểu tượng ba gạch (hamburger icon) khi sidebar thu gọn -->
+        <div class="menu-icon" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="sidebar-links">
+            <h4 class="text-center">Quản Lý Mua Chung</h4>
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i> Xin Chào, @Context.Session.GetString("UserName")!
+            </div>
+            <a href="/Admin/Index"><i class="fas fa-home"></i> Trang Chủ</a>
+            @if (role != "NhanVien")
+            {
+                <a href="/Admin/KhachHang"><i class="fas fa-users"></i> Quản lý Khách hàng</a>
+                <a href="/Admin/NhanVien"><i class="fas fa-users"></i> Quản lý Nhân viên</a>
+            }
+            <a href="/Admin/SanPham"><i class="fas fa-box"></i> Quản lý Sản phẩm</a>
+            <a href="/Admin/DonHang"><i class="fas fa-file-invoice"></i> Quản lý đơn hàng</a>
+            <a href="/Admin/DanhMuc"><i class="fas fa-list"></i> Quản lý danh mục</a>
+            <a href="/Admin/PhanHoi"><i class="fas fa-comments"></i> Quản lý phản hồi</a>
+            <a href="/Admin/MuaChung" class="active"><i class="fas fa-percent"></i> Quản lý mua chung</a>
+            <a href="/KhachHang/DangXuat" class="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+    <div class="content">
+     <div class="container mt-4">
+    <h2 class="text-center text-success">Quản Lý Mua Chung</h2>
+
+    <!-- Tabs to switch between the two categories -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="dang-giam-gia-tab" href="javascript:void(0);" onclick="showCategory('dang-giam-gia')">Sản Phẩm Đang Giảm Giá</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="lich-su-tab" href="javascript:void(0);" onclick="showCategory('lich-su')">Lịch Sử Chương Trình</a>
+        </li>
+    </ul>
+
+    <!-- Show the product list for the active category -->
+    <div id="dang-giam-gia" class="mt-4">
+        <h3>Sản Phẩm Đang Giảm Giá</h3>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Giá</th>
+                    <th>Hình Ảnh</th>
+                    <th>Chương Trình Mua Chung</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sp in Model)
+                {
+                    <tr>
+                        <td>@sp.MaHh</td>
+                        <td>@sp.TenHh</td>
+                        <td>@string.Format("{0:N0}", sp.DonGia) VNĐ</td>
+                        <td>
+                            <img src="~/Hinh/HangHoa/@(sp.Hinh ?? "default.jpg")" width="80" height="80" class="img-fluid rounded">
+                        </td>
+                        <td>
+                            <span class="badge @(sp.TrangThaiGiamGia == "Đang giảm giá" ? "bg-success" : 
+                                                sp.TrangThaiGiamGia == "Chưa bắt đầu" ? "bg-warning text-dark" : 
+                                                "bg-secondary")">
+                                @sp.TrangThaiGiamGia
+                            </span>
+                            @if (sp.CanSetupGiamGia)
+                                {
+                                    <button class="btn btn-warning btn-sm mt-1" data-bs-toggle="modal"
+                                            data-bs-target="#setupGiamGiaModal" onclick="openSetupGiamGiaModal(@sp.MaHh)">
+                                        Setup Giảm Giá
+                                    </button>
+                                }
+                                else if (sp.CanEditGiamGia)
+                                {
+                                    <button class="btn btn-info btn-sm mt-1" onclick="openEditGiamGiaModal(
+        @sp.MaHh,
+        @sp.GiamGia.MaGG,
+        @sp.GiamGia.TyLeGG,
+        @sp.GiamGia.NguoiToiThieu,
+        '@sp.GiamGia.StartTime.ToString("yyyy-MM-ddTHH:mm")',
+        '@sp.GiamGia.EndTime.ToString("yyyy-MM-ddTHH:mm")')">
+                                        Sửa Giảm Giá
+                                        </button>
+                                    }
+                                    else if (sp.CanEditGiamGia)
+                                    {
+                                        <button class="btn btn-danger btn-sm mt-1"
+                                                onclick="tatGiamGia(@sp.GiamGia.MaGG)">
+                                            Tắt Giảm Giá
+                                        </button>
+                                    }
+                                </td>
+                        <td>
+                            <button class="btn btn-outline-primary rounded-pill mt-2" onclick="showPromoModal(@sp.MaHh, '@sp.TenHh','@sp.Hinh',@sp.DonGia,@sp.GiamGia?.MaGG)">
+                                <i class="fa fa-tags me-1"></i> Xem chương trình
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="lich-su" class="mt-4" style="display:none;">
+        <h3>Lịch Sử Chương Trình</h3>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Giá</th>
+                    <th>Hình Ảnh</th>
+                    <th>Chương Trình Mua Chung</th>
+                     <th>Ngày Kết Thúc</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sp in ViewBag.SanPhamKetThuc)
+                {
+                    <tr>
+                        <td>@sp.MaHh</td>
+                        <td>@sp.TenHh</td>
+                        <td>@string.Format("{0:N0}", sp.DonGia) VNĐ</td>
+                        <td>
+                            <img src="~/Hinh/HangHoa/@(sp.Hinh ?? "default.jpg")" width="80" height="80" class="img-fluid rounded">
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">@sp.TrangThaiGiamGia</span>
+                        </td>
+                        <td>
+                            @(((DateTime)sp.GiamGia.EndTime).ToString("dd/MM/yyyy"))
+                        </td>
+                        <td>
+                            <button class="btn btn-outline-primary rounded-pill mt-2" onclick="showPromoModal(@sp.MaHh, '@sp.TenHh','@sp.Hinh',@sp.DonGia,@sp.GiamGia?.MaGG)">
+                                <i class="fa fa-tags me-1"></i> Xem chi tiết
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+    </div>
+</body>
+</html>
+
+<!-- Modal Setup Giảm Giá -->
+<div class="modal fade" id="setupGiamGiaModal" tabindex="-1" aria-labelledby="setupGiamGiaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="setupGiamGiaLabel">Thiết lập Mua Chung</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="setupGiamGiaForm">
+                <div class="modal-body">
+                    <input type="hidden" id="MaHh" name="MaHh">
+
+                    <div class="mb-3">
+                        <label for="TyLeGG" class="form-label">Tỷ lệ giảm giá (%)</label>
+                        <input type="number" class="form-control" id="TyLeGG" name="TyLeGG" min="1" max="100" step="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="NguoiToiThieu" class="form-label">Số người tối thiểu</label>
+                        <input type="number" class="form-control" id="NguoiToiThieu" name="NguoiToiThieu" min="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="StartTime" class="form-label">Thời gian bắt đầu</label>
+                        <input type="datetime-local" class="form-control" id="StartTime" name="StartTime" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="EndTime" class="form-label">Thời gian kết thúc</label>
+                        <input type="datetime-local" class="form-control" id="EndTime" name="EndTime" required>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="IsActive" name="IsActive" value="true">
+                        <label class="form-check-label" for="IsActive">Kích hoạt giảm giá</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xem Chi Tiết Giảm Giá -->
+<!-- Modal xem chương trình khuyến mại sản phẩm -->
+<div class="modal fade" id="promoModal" tabindex="-1" aria-labelledby="promoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-body p-0">
+                <div class="row g-0">
+                    <!-- Bên trái: ảnh sản phẩm -->
+                    <div class="col-md-5 bg-dark rounded-start-4 d-flex align-items-center justify-content-center">
+                        <img id="promoImage" src="" class="img-fluid p-3 rounded-4" alt="Hình sản phẩm" style="max-height: 280px;" />
+                    </div>
+
+                    <!-- Bên phải: nội dung -->
+                    <div class="col-md-7 p-4 bg-white rounded-end-4">
+                        <h4 class="fw-bold text-primary mb-3" id="promoTenHh">Tên sản phẩm</h4>
+
+                        <p>
+                            <strong>Giá gốc:</strong>
+                            <span id="promoGiaGoc" class="text-decoration-line-through text-muted fs-6"></span>
+                        </p>
+                        <p>
+                            <strong>Giá khuyến mãi:</strong>
+                            <span id="promoGiaSauGiam" class="text-danger fw-bold fs-5"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-percent text-warning me-2"></i><strong>Tỷ lệ giảm giá:</strong>
+                            <span id="promoTyLeGG" class="text-dark"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-users text-success me-2"></i><strong>Số người cần để được giảm giá:</strong>
+                            <span id="promoNguoiToiThieu" class="text-dark"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-users text-success me-2"></i><strong>Số người đã tham gia:</strong>
+                            <span id="promoSoNguoiThamGia" class="text-dark"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-clock text-primary me-2"></i><strong>Thời gian bắt đầu:</strong>
+                            <span id="promoStartTime"></span>
+                        </p>
+                        <p>
+                            <i class="fa fa-hourglass-end text-danger me-2"></i><strong>Thời gian kết thúc:</strong>
+                            <span id="promoEndTime"></span>
+                        </p>
+
+                        <div class="mt-4 text-end">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+    <h5>Danh sách khách hàng tham gia:</h5>
+    <ul id="promoKhachHangList" class="list-group mt-3">
+    <!-- Dữ liệu sẽ được chèn vào bằng JS -->
+</ul>
+</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Modal Sửa Giảm Giá -->
+<div class="modal fade" id="editGiamGiaModal" tabindex="-1" aria-labelledby="editGiamGiaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editGiamGiaForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editGiamGiaModalLabel">Sửa Giảm Giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_MaGG" name="MaGG" />
+                    <input type="hidden" id="edit_MaHh" name="MaHh" />
+
+                    <div class="mb-3">
+                        <label for="edit_TyLeGG" class="form-label">Tỷ lệ giảm giá (%)</label>
+                        <input type="number" class="form-control" id="edit_TyLeGG" name="TyLeGG" required min="0" max="100" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_NguoiToiThieu" class="form-label">Người tối thiểu</label>
+                        <input type="number" class="form-control" id="edit_NguoiToiThieu" name="NguoiToiThieu" required min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_StartTime" class="form-label">Thời gian bắt đầu</label>
+                        <input type="datetime-local" class="form-control" id="edit_StartTime" name="StartTime" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_EndTime" class="form-label">Thời gian kết thúc</label>
+                        <input type="datetime-local" class="form-control" id="edit_EndTime" name="EndTime" required />
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="edit_IsActive" name="IsActive" />
+                        <label class="form-check-label" for="edit_IsActive">
+                            Kích hoạt giảm giá
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+   function showPromoModal(maHh, tenHh, hinh, donGia, maGg) {
+    fetch(`/Admin/ChiTietGiamGia?maHh=${maHh}&maGg=${maGg}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const vm = data.data; // Lấy object ViewModel từ response
+
+                const giaGoc = parseFloat(donGia);
+                const giam = parseFloat(vm.tyLeGG);
+                const giaSauGiam = giaGoc * (1 - giam / 100);
+
+                document.getElementById("promoImage").src = `/Hinh/HangHoa/${hinh}`;
+                document.getElementById("promoTenHh").innerText = tenHh;
+                document.getElementById("promoGiaGoc").innerText = giaGoc.toLocaleString() + " VND";
+                document.getElementById("promoGiaSauGiam").innerText = giaSauGiam.toLocaleString() + " VND";
+                document.getElementById("promoTyLeGG").innerText = giam + " %";
+                document.getElementById("promoNguoiToiThieu").innerText = vm.nguoiToiThieu + " người";
+                document.getElementById("promoSoNguoiThamGia").innerText = vm.soNguoiThamGia + " người";
+                document.getElementById("promoStartTime").innerText = vm.startTime;
+                document.getElementById("promoEndTime").innerText = vm.endTime;
+
+                // Hiển thị danh sách khách hàng tham gia
+                const khachHangs = vm.khachHangs;
+
+let khachHangList = "";
+
+if (!khachHangs || khachHangs.length === 0) {
+    khachHangList = `
+        <div class="text-center text-muted py-4">
+            <i class="fa fa-user-times fa-2x mb-2"></i><br/>
+            Chương trình chưa có người dùng tham gia.
+        </div>
+    `;
+} else {
+    khachHangList = khachHangs.map(kh => {
+        return `
+        <li class="list-group-item d-flex align-items-center border-0 border-bottom py-3">
+            <img src="/Uploads/KhachHang/${kh.anh}" alt="avatar" class="rounded-circle me-3 shadow" width="60" height="60" />
+            <div class="flex-grow-1">
+                <div class="fw-semibold fs-6 text-dark">${kh.hoTen}</div>
+                <div class="text-muted small">📧 ${kh.email || 'Chưa có email'}</div>
+                <div class="text-muted small">
+                    🕒 Tham gia: ${new Date(kh.ngayThamGia).toLocaleDateString()} |
+                    🛒 Đơn hàng tích lũy: <strong>${kh.soLuongDaMua}</strong>
+                </div>
+            </div>
+        </li>`;
+    }).join('');
+}
+
+document.getElementById("promoKhachHangList").innerHTML = khachHangList;
+
+                new bootstrap.Modal(document.getElementById("promoModal")).show();
+            } else {
+                alert(data.message || "Không tìm thấy chương trình khuyến mãi.");
+            }
+        })
+        .catch(error => console.error("Lỗi khi lấy dữ liệu khuyến mãi:", error));
+}
+
+
+
+
+
+    function openSetupGiamGiaModal(maHh) {
+        document.getElementById("MaHh").value = maHh;
+        document.getElementById("setupGiamGiaForm").reset();
+        new bootstrap.Modal(document.getElementById("setupGiamGiaModal")).show();
+    }
+
+    document.getElementById("setupGiamGiaForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        let formData = new FormData(this);
+
+        fetch("/Admin/SetupGiamGia", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Thiết lập mua chung thành công!");
+
+                    // Đóng modal sau khi gửi thành công
+                    const modalElement = document.getElementById("setupGiamGiaModal");
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    modalInstance.hide();
+
+                    // Remove backdrop class in case it's stuck
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+
+                    // Reload page if necessary
+                    location.reload();
+                } else {
+                    alert("Có lỗi xảy ra, vui lòng thử lại!");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Có lỗi xảy ra, vui lòng thử lại!");
+            });
+    });
+
+    // Khi nhấn nút "Đóng", ẩn modal và loại bỏ lớp backdrop
+    document.querySelector('#setupGiamGiaModal .btn-close').addEventListener('click', function () {
+        const modalElement = document.getElementById("setupGiamGiaModal");
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        modalInstance.hide();
+
+        // Remove backdrop if it exists
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    });
+
+    function openEditGiamGiaModal(maHh, maGg, tyLe, nguoi, start, end, isActive) {
+        $('#edit_MaHh').val(maHh);
+        $('#edit_MaGG').val(maGg);
+        $('#edit_TyLeGG').val(tyLe);
+        $('#edit_NguoiToiThieu').val(nguoi);
+        $('#edit_StartTime').val(start);
+        $('#edit_EndTime').val(end);
+
+        // Gán trạng thái checkbox từ dữ liệu
+        $('#edit_IsActive').prop('checked', isActive);
+
+        $('#editGiamGiaModal').modal('show');
+    }
+
+    $('#editGiamGiaForm').submit(function (e) {
+        e.preventDefault();
+
+        // Lấy giá trị checkbox IsActive (true/false)
+        var isActive = $('#edit_IsActive').is(':checked');
+
+        // Dùng serializeArray để thêm thủ công IsActive nếu không được gửi
+        var formData = $(this).serializeArray();
+
+        // Ghi đè hoặc thêm mới IsActive
+        formData = formData.filter(f => f.name !== "IsActive"); // Xoá nếu đã có
+        formData.push({ name: 'IsActive', value: isActive });
+
+        $.ajax({
+            url: '/Admin/SuaGiamGia',
+            type: 'POST',
+            data: $.param(formData),
+            success: function (response) {
+                if (response.success) {
+                    alert("Cập nhật giảm giá thành công!");
+                    location.reload();
+                } else {
+                    alert(response.message || "Có lỗi xảy ra!");
+                }
+            },
+            error: function () {
+                alert("Lỗi kết nối đến server.");
+            }
+        });
+    });
+
+     function showCategory(category) {
+        // Hide both categories
+        document.getElementById('dang-giam-gia').style.display = 'none';
+        document.getElementById('lich-su').style.display = 'none';
+
+        // Show the selected category
+        if (category === 'dang-giam-gia') {
+            document.getElementById('dang-giam-gia').style.display = 'block';
+        } else if (category === 'lich-su') {
+            document.getElementById('lich-su').style.display = 'block';
+        }
+
+        // Update active tab
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        if (category === 'dang-giam-gia') {
+            document.getElementById('dang-giam-gia-tab').classList.add('active');
+        } else if (category === 'lich-su') {
+            document.getElementById('lich-su-tab').classList.add('active');
+        }
+    }
+
+    // Set default category to "Sản Phẩm Đang Giảm Giá"
+    showCategory('dang-giam-gia');
+    let timeoutId;  // Biến để lưu ID của setTimeout
+
+    // Hàm để thu gọn sidebar
+    function collapseSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.add('collapsed');  // Thêm class collapsed để thu gọn sidebar
+    }
+
+    // Hàm để mở rộng sidebar
+    function expandSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.remove('collapsed');  // Xóa class collapsed để mở rộng sidebar
+    }
+
+    // Hàm để đặt lại thời gian không hoạt động (reset timeout)
+    function resetInactivityTimer() {
+        // Nếu có thời gian không hoạt động trước đó, hủy bỏ nó
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        // Đặt lại thời gian không hoạt động, sau 3 giây không hoạt động thì thu gọn sidebar
+        timeoutId = setTimeout(collapseSidebar, 1000);
+    }
+
+    // Gắn sự kiện vào sidebar để nhận biết khi chuột di chuyển vào đó
+    var sidebar = document.querySelector('.sidebar');
+    sidebar.addEventListener('mousemove', function() {
+        expandSidebar();  // Khi chuột di chuyển vào sidebar, mở rộng sidebar
+        resetInactivityTimer();  // Đặt lại thời gian không hoạt động
+    });
+
+    // Gắn sự kiện vào body để thu gọn sidebar nếu chuột không di chuyển vào sidebar trong 3 giây
+    document.body.addEventListener('mousemove', function(event) {
+        if (!sidebar.contains(event.target)) {
+            // Nếu chuột không di chuyển vào sidebar, đợi 3 giây và thu gọn sidebar
+            resetInactivityTimer();
+        }
+    });
+
+    // Đảm bảo sidebar không bị thu gọn nếu người dùng bấm vào biểu tượng ba gạch
+    function toggleSidebar() {
+        var sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('collapsed');
+        clearTimeout(timeoutId);  // Hủy bỏ thời gian không hoạt động khi người dùng tương tác với sidebar
+    }
+
+</script>

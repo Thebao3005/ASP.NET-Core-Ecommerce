@@ -1,0 +1,179 @@
+﻿@model ECommerceMVC.Data.HoaDon
+
+@{
+    ViewData["Title"] = "Chi Tiết Đơn Hàng #" + Model.MaHd;
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">📜 Chi Tiết Đơn Hàng #@Model.MaHd</h2>
+        <a asp-action="DonDaDat" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+        <h4 class="text-dark fw-bold">🛒 Thông Tin Đơn Hàng</h4>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>📅 Ngày Đặt:</strong> @Model.NgayDat.ToString("dd/MM/yyyy")</li>
+            <li class="list-group-item"><strong>📍 Địa Chỉ:</strong> @Model.DiaChi</li>
+            <li class="list-group-item"><strong>💳 Thanh Toán:</strong> <span class="badge bg-success">@Model.CachThanhToan</span></li>
+            <li class="list-group-item">
+                <strong>🚀 Trạng Thái:</strong>
+                <span class="badge bg-@(Model.MaTrangThai == 0 ? "warning" : Model.MaTrangThai == 5 ? "success" : "primary")">
+                    @(Model.MaTrangThaiNavigation?.TenTrangThai ?? "Không xác định")
+                </span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-hover table-bordered text-center align-middle shadow-sm">
+            <thead class="table-primary">
+                <tr>
+                    <th>Hình Ảnh</th>
+                    <th>Sản Phẩm</th>
+                    <th>Đơn Giá</th>
+                    <th>Số Lượng</th>
+                    <th>Giảm Giá</th>
+                    <th>Thành Tiền</th>
+                    @if (Model.MaTrangThai == 5)
+                    {
+                        <th>Đánh Giá</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.ChiTietHds != null && Model.ChiTietHds.Any())
+                {
+                    @foreach (var item in Model.ChiTietHds)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@Url.Content("~/Hinh/HangHoa/" + (item.MaHhNavigation?.Hinh ?? "default.png"))"
+                                     width="80" height="80" class="rounded shadow">
+                            </td>
+                            <td class="fw-bold">@(item.MaHhNavigation?.TenHh ?? "Không xác định")</td>
+                            <td class="text-danger">@item.DonGia VND</td>
+                            <td>@item.SoLuong</td>
+                            @if(item.GiamGia == 0)
+                            {
+                                <td>0%</td>
+                            }
+                            else
+                            {
+                                <td>@item.GiamGia%</td>
+                            }
+                            <td class="fw-bold text-primary">
+                                @((item.DonGia *(1 - item.GiamGia/100)) * item.SoLuong) VND
+                            </td>
+
+                            @if (Model.MaTrangThai == 5)
+                            {
+                                <td>
+                                    @{
+                                        var danhGiaDaCo = ViewBag.DanhGiaDaCo as List<int> ?? new List<int>();
+                                        var danhGiaCuaToi = ViewBag.DanhGiaCuaToi as List<int> ?? new List<int>();
+                                    }
+
+                                    @if (danhGiaDaCo.Contains(item.MaHh))
+                                    {
+                                        <!-- Nếu đã đánh giá trong hóa đơn này, hiển thị nút xem đánh giá -->
+                                        <a href="@Url.Action("Detail", "HangHoa", new { id = item.MaHh })" class="btn btn-info btn-sm">
+                                            Xem Đánh Giá
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <!-- Nếu chưa đánh giá, hiển thị form đánh giá -->
+                                        <button class="btn btn-warning btn-sm btn-danh-gia" data-mahh="@item.MaHh" data-mahd="@Model.MaHd">Đánh Giá</button>
+                                        <div class="danh-gia-form d-none mt-2">
+                                            <select class="form-select mb-2 danh-gia-sao">
+                                                <option value="5">⭐️⭐️⭐️⭐️⭐️</option>
+                                                <option value="4">⭐️⭐️⭐️⭐️</option>
+                                                <option value="3">⭐️⭐️⭐️</option>
+                                                <option value="2">⭐️⭐️</option>
+                                                <option value="1">⭐️</option>
+                                            </select>
+                                            <textarea class="form-control mb-2 danh-gia-comment" placeholder="Nhập nhận xét..."></textarea>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input danh-gia-an-danh" type="checkbox">
+                                                <label class="form-check-label">Ẩn danh</label>
+                                            </div>
+                                            <button type="button" class="btn btn-success btn-gui-danh-gia" data-mahh="@item.MaHh" data-mahd="@Model.MaHd">Gửi</button>
+                                        </div>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-danger">Không có sản phẩm nào trong đơn hàng</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <h4 class="text-end text-dark fw-bold mt-4">
+        @($"{Model.ChiTietHds?.Sum(c => (c.DonGia * (1 - c.GiamGia/100)) * c.SoLuong) ?? 0:N0}") VND
+    </h4>
+
+    @if (Model.MaTrangThai == 0)
+    {
+        <div class="text-center mt-4">
+            <form asp-action="HuyDon" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                <input type="hidden" name="MaHd" value="@Model.MaHd" />
+                <button type="submit" class="btn btn-danger">❌ Hủy Đơn Hàng</button>
+            </form>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".btn-danh-gia").click(function () {
+            $(this).siblings(".danh-gia-form").toggleClass("d-none");
+        });
+
+        $(".btn-gui-danh-gia").click(function () {
+            var MaHh = $(this).data("mahh");
+            var MaHd = $(this).data("mahd"); // Lấy MaHd từ button
+
+            if (!MaHd) {
+                console.log("❌ Không tìm thấy MaHd! Debug:", MaHh);
+                alert("❌ Lỗi: Không tìm thấy mã hóa đơn!");
+                return;
+            }
+
+            var form = $(this).closest(".danh-gia-form"); // lấy form cha
+            var SoSao = form.find(".danh-gia-sao").val();
+            var Comment = form.find(".danh-gia-comment").val();
+            var AnDanh = form.find(".danh-gia-an-danh").is(":checked");
+
+            $.ajax({
+                url: "/YeuThich/DanhGiaSanPham",
+                type: "POST",
+                data: {
+                    MaHh: MaHh,
+                    MaHd: MaHd,
+                    SoSao: SoSao,
+                    Comment: Comment,
+                    AnDanh: AnDanh
+                },
+                success: function (response) {
+                    alert(response.message);
+                    if (response.success) {
+                        location.reload();
+                    }
+                },
+                error: function () {
+                    alert("❌ Lỗi khi gửi đánh giá! Vui lòng thử lại.");
+                }
+            });
+        });
+    });
+</script>

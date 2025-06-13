@@ -1,0 +1,60 @@
+﻿@* View: Đơn hàng đã hủy *@
+@model List<ECommerceMVC.Data.HoaDon>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-danger">❌ Đơn hàng đã hủy</h2>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-danger">
+            <i class="fas fa-arrow-left"></i> Quay lại trang chủ
+        </a>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered text-center align-middle shadow-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã đơn hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Khách hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Địa chỉ nhận hàng</th>
+                        <th>Thanh toán</th>
+                        <th>Phí vận chuyển</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">#@order.MaHd</td>
+                            <td>@order.NgayDat.ToString("dd/MM/yyyy")</td>
+                            <td><i class="fas fa-user"></i> @(order.MaKhNavigation?.HoTen ?? "Không xác định")</td>
+                            <td><i class="fas fa-phone"></i> @(order.MaKhNavigation?.DienThoai ?? "Không có")</td>
+                            <td>@order.DiaChi</td>
+                            <td><span class="badge bg-primary">@order.CachThanhToan</span></td>
+                            <td>
+                                <span class="fw-bold @(order.PhiVanChuyen > 0 ? "text-danger" : "text-success")">
+                                    @(order.PhiVanChuyen > 0 ? order.PhiVanChuyen.ToString("N0") + " VND" : "Miễn phí")
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@order.MaHd" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Xem
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle"></i> Không có đơn hàng nào.
+        </div>
+    }
+</div>
